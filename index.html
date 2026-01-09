@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Carga - EXPAMA</title>
+
+    <link rel="icon" href="./Carga_flora.jpg" type="image/jpeg">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0a0a14',
+                        surface: '#1e1e2e',
+                        primary: '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a14; color: white; overflow: hidden; }
+        
+        .glass-panel {
+            background: rgba(30, 30, 46, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .input-dark {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        canvas { outline: none; }
+    </style>
+</head>
+<body class="antialiased h-screen flex">
+
+    <div id="canvas-container" class="flex-1 relative h-full">
+        <div class="absolute top-6 left-6 right-6 flex gap-4 pointer-events-none z-10">
+            
+            <div class="glass-card rounded-xl p-3 flex items-center gap-3 pointer-events-auto min-w-[140px]">
+                <div class="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-400 uppercase font-semibold">QTD. UNIT</div>
+                    <div id="stat-count" class="text-base font-bold text-white leading-none mt-1">0</div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-3 flex items-center gap-3 pointer-events-auto min-w-[160px]">
+                <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                    <i data-lucide="flag" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-400 uppercase font-semibold">Peso Destino</div>
+                    <div id="stat-target" class="text-base font-bold text-white leading-none mt-1">0,000 kg</div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-3 flex items-center gap-3 pointer-events-auto min-w-[160px] relative group">
+                <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                    <i data-lucide="scale" class="w-5 h-5"></i>
+                </div>
+                <div class="flex flex-col">
+                    <div class="text-[10px] text-gray-400 uppercase font-semibold">Peso Bruto</div>
+                    <div id="stat-weight" class="text-base font-bold text-white leading-none mt-1 transition-colors">0,000 kg</div>
+                    
+                    <div id="stat-excess-warn" class="hidden mt-1 px-1.5 py-0.5 bg-red-500/20 border border-red-500/30 rounded text-[10px] text-red-300 font-bold animate-pulse">
+                        Excesso: <span id="stat-excess-val">+0,000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dynamic-status" class="glass-card rounded-xl px-4 py-2 flex items-center gap-2 pointer-events-auto ml-auto opacity-0 transition-opacity duration-300">
+                <span id="status-dot" class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span id="status-text" class="text-sm font-medium text-gray-200">Pronto</span>
+            </div>
+        </div>
+
+        <div class="absolute bottom-6 left-6 pointer-events-none z-10 flex gap-4 text-xs text-gray-400 font-medium">
+            <div class="glass-card px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <span class="bg-gray-700 px-1.5 py-0.5 rounded text-gray-200">Clique + Arraste</span> Mover
+            </div>
+            <div class="glass-card px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <span class="bg-gray-700 px-1.5 py-0.5 rounded text-gray-200">Scroll</span> Zoom
+            </div>
+            <div class="glass-card px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <span class="bg-gray-700 px-1.5 py-0.5 rounded text-gray-200">Botão Direito</span> Girar Câmera
+            </div>
+        </div>
+    </div>
+
+    <div class="w-96 glass-panel border-l border-white/10 flex flex-col h-full z-20 shadow-2xl">
+        <div class="p-3 border-b border-white/10">
+            <div class="flex items-center gap-3 w-full">
+                <div class="p-2.5 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-900/20 shrink-0">
+                    <i data-lucide="box" class="w-3 h-3 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Formatação de PO</h1>
+                    <p class="text-xs text-gray-400">PCP - Planejamento de Carga</p>
+                </div>
+                <img src="./EXPAMA.png" alt="EXPAMA" class="h-4 w-auto ml-auto object-contain">
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <div class="space-y-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                <div class="flex items-center gap-2 text-sm font-semibold text-gray-300 mb-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i>
+                    Dados da Carga
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Cliente</label>
+                        <input id="info-client" type="text" placeholder="Nome do Cliente" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Destino</label>
+                            <input id="info-dest" type="text" placeholder="Destino" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-amber-500 uppercase font-bold pl-1">Peso Destino (Kg)</label>
+                            <input id="info-target-weight" type="number" placeholder="0.000" class="input-dark w-full rounded-lg px-3 py-2 text-sm border-amber-500/30 focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Pedido / PO</label>
+                            <input id="info-po" type="text" placeholder="Numero da PO" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Nº Container</label>
+                            <input id="info-container-id" type="text" placeholder="00000" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Data</label>
+                            <input id="info-date" type="date" class="input-dark w-full rounded-lg px-3 py-2 text-sm text-gray-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Responsável</label>
+                            <input id="info-responsible" type="text" placeholder="Nome" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/5"></div>
+
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-sm font-semibold text-gray-300">
+                    <i data-lucide="container" class="w-4 h-4 text-blue-400"></i>
+                    Medidas Do Container (m)
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Comp.</label>
+                        <input id="cont-length" type="number" value="12.04" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Larg.</label>
+                        <input id="cont-width" type="number" value="2.36" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Alt.</label>
+                        <input id="cont-height" type="number" value="2.59" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/5"></div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between text-sm font-semibold text-gray-300">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+                        Lista de Produtos
+                    </div>
+                    <span id="product-count" class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-400">0</span>
+                </div>
+
+                <div id="products-list" class="space-y-3">
+                    <div id="product-template" class="hidden glass-card p-3 rounded-xl border border-white/5 group transition-all hover:border-white/10">
+                        <div class="flex justify-between items-start mb-3">
+                            <select class="input-dark w-full text-sm rounded-lg px-2 py-1.5 mr-2 bg-transparent" data-field="name"></select>
+                            <button class="remove-btn p-1.5 rounded-lg hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="C" data-field="length" title="Comprimento" readonly>
+                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="L" data-field="width" title="Largura" readonly>
+                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="A" data-field="height" title="Altura" readonly>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 bg-black/20 p-2 rounded-lg">
+                            <div>
+                                <label class="text-[10px] text-blue-400 font-bold block mb-1">PALETES</label>
+                                <input type="number" class="input-dark w-full rounded px-2 py-1 text-sm font-medium" data-field="pallet_qty" value="0">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-blue-400 font-bold block mb-1">PACOTES</label>
+                                <input type="number" class="input-dark w-full rounded px-2 py-1 text-sm font-medium" data-field="package_qty" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="add-product-btn" class="w-full py-2.5 rounded-lg border border-dashed border-gray-600 text-gray-400 text-sm hover:bg-white/5 hover:border-gray-500 hover:text-white transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Adicionar Produto
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-white/10 bg-black/20 space-y-3">
+            <button id="simulate-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                SIMULAR CARREGAMENTO
+            </button>
+
+            <button id="pdf-btn" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-emerald-900/20">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                Gerar Relatório PDF
+            </button>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button id="save-btn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-white/5">
+                    <i data-lucide="download" class="w-4 h-4"></i> Salvar Layout
+                </button>
+                <label class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer border border-white/5">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Carregar
+                    <input type="file" id="load-file" class="hidden" accept=".json">
+                </label>
+            </div>
+            
+            <label class="w-full bg-green-800 hover:bg-green-700 text-green-100 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer border border-green-500/20 mt-2">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Importar Base (Excel)
+                <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls">
+            </label>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { DragControls } from 'three/addons/controls/DragControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- Configuração ---
+        lucide.createIcons();
+
+        // Variáveis Globais
+        let scene, camera, renderer, orbitControls, dragControls;
+        let containerMesh; 
+        let cargoGroup; // Grupo para a carga
+        let truckModel; 
+        const draggableObjects = [];
+        const containerDim = { length: 12.04, width: 2.36, height: 2.59 };
+        const SPACING = 0.05; 
+        const MAGNETIC_RANGE = 0.3; 
+
+        // Banco de Dados Default
+        const defaultDatabase = [
+            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267514", "amarradinho": "10860012267511" },
+            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
+            { "Nome do produto": "PAINEL RIPADO MADEIRADO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
+            { "Nome do produto": "MOLDURA L S4S 1 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.051, "altura": 2.47, "peso do palete": 3996.98796, "peso do pacote": 1332.32932, "quantidade de peças por pacote": 1092, "m3 do pacote": 1.72465, "peso liquido do palete": 3996.98796, "peso liquido do pacote": 1332.32932, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
+            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.038, "altura": 2.47, "peso do palete": 3948.56503, "peso do pacote": 1316.18834, "quantidade de peças por pacote": 294, "m3 do pacote": 1.70254, "peso liquido do palete": 3948.56503, "peso liquido do pacote": 1316.18834, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
+            { "Nome do produto": "MOLDURA L S4S 3 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.127, "altura": 2.47, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
+            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 12'", "comprimento": 3.6570, "largura": 1.038, "altura": 1.86, "peso do palete": 4214.89111, "peso do pacote": 1404.96370, "quantidade de peças por pacote": 210, "m3 do pacote": 1.82415, "peso liquido do palete": 4214.89111, "peso liquido do pacote": 1404.96370, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267576", "amarradinho": "20860012267570" }
+        ];
+
+        let productDatabase = [...defaultDatabase];
+        const baseColors = [0x0e60ed, 0x10b981, 0xf59e0b, 0xef4444, 0x8b5cf6, 0xec4899, 0x06b6d4];
+
+        document.getElementById('info-date').valueAsDate = new Date();
+
+        function loadCachedDatabase() {
+            const cached = localStorage.getItem('expama_simulador_db');
+            if(cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        productDatabase = parsed;
+                    }
+                } catch(e) { console.error(e); }
+            }
+        }
+        loadCachedDatabase();
+
+        // --- FUNÇÃO DE GRAVIDADE (Queda automática) ---
+        function applyGravityToAll() {
+            draggableObjects.sort((a, b) => a.position.y - b.position.y);
+            let movedAny = false;
+
+            for (let obj of draggableObjects) {
+                const dims = getDimensions(obj);
+                const currentPos = getLogicPos(obj); 
+                const groundY = findLandingSurfaceHeight(obj, currentPos.x, currentPos.z, dims.l, dims.w);
+
+                if (currentPos.y > groundY + 0.01) {
+                    obj.position.y = groundY + dims.h / 2;
+                    updateObjectUserData(obj, getLogicPos(obj));
+                    movedAny = true;
+                }
+            }
+            if (movedAny) updateStats();
+        }
+
+        function loadTruckModel() {
+            const loader = new GLTFLoader();
+            loader.load('./caminhao.glb',
+                function (gltf) {
+                    truckModel = gltf.scene;
+                    truckModel.scale.set(6.4, 6.4, 6.4); 
+                    truckModel.rotation.y = -Math.PI / 2; 
+                    truckModel.position.set(4.1, -0.01, -4.0); 
+
+                    truckModel.traverse(function (node) {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                        }
+                    });
+
+                    scene.add(truckModel);
+                    showDynamicStatus('Online', 'ok');
+                },
+                undefined,
+                function (error) {
+                    showDynamicStatus('Caminhão não encontrado', 'warn');
+                }
+            );
+        }
+
+        init();
+
+        function init() {
+            setupScene();
+            setupUI();
+            loadTruckModel();
+            camera.position.set(15, 12, 25); 
+            animate();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function setupScene() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            // CORRIGIDO: BRANCO TOTAL
+            scene.background = new THREE.Color(0xffffff); 
+            // CORRIGIDO: REMOVIDO NEBLINA/FOG
+            scene.fog = null; 
+
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(10, 8, 18); 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            // CORRIGIDO: NITIDEZ e CORES
+            renderer.setPixelRatio(window.devicePixelRatio); 
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            container.appendChild(renderer.domElement);
+
+            // CORRIGIDO: LUZ MAIS FORTE (0.9)
+            const ambient = new THREE.AmbientLight(0xffffff, 0.9); 
+            scene.add(ambient);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(20, 30, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+            
+            const fillLight = new THREE.PointLight(0x3b82f6, 0.5);
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+
+            orbitControls = new OrbitControls(camera, renderer.domElement);
+            orbitControls.enableDamping = true;
+            orbitControls.dampingFactor = 0.05;
+
+            drawContainerFrame();
+        }
+
+        function drawContainerFrame() {
+            if(containerMesh) {
+                scene.remove(containerMesh);
+                scene.children.forEach(c => {
+                    if(c.name === 'environment') scene.remove(c);
+                });
+            }
+
+            if (cargoGroup) {
+                cargoGroup.clear(); 
+            } else {
+                cargoGroup = new THREE.Group();
+                cargoGroup.name = 'cargoOrigin';
+            }
+
+            containerDim.length = parseFloat(document.getElementById('cont-length').value);
+            containerDim.width = parseFloat(document.getElementById('cont-width').value);
+            containerDim.height = parseFloat(document.getElementById('cont-height').value);
+
+            const yGrass = -1.65;
+            const yRoad = -1.63;
+            const yLines = -1.62;
+            
+            // OPÇÃO 2: Chão invisível que só mostra a sombra
+            const grassGeo = new THREE.PlaneGeometry(100, 100);
+            
+            // ShadowMaterial é transparente, mas desenha a sombra preta em cima
+            const grassMat = new THREE.ShadowMaterial({ opacity: 0.1 }); 
+            
+            const grass = new THREE.Mesh(grassGeo, grassMat);
+            grass.rotation.x = -Math.PI / 2;
+            grass.position.set(0, yGrass, 0);
+            grass.receiveShadow = true; // Sombra continua funcionando
+            grass.name = 'environment';
+            scene.add(grass);
+
+            const roadGeo = new THREE.PlaneGeometry(100, 16); 
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x413a44, roughness: 0.9 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.set(0, yRoad, 0); 
+            road.receiveShadow = true;
+            road.name = 'environment';
+            scene.add(road);
+
+            const lineGeo = new THREE.PlaneGeometry(100, 0.15); 
+            const yellowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1 });
+
+            const lineYellow1 = new THREE.Mesh(lineGeo, yellowMat);
+            lineYellow1.rotation.x = -Math.PI / 2;
+            lineYellow1.position.set(0, yLines, -0.15);
+            lineYellow1.name = 'environment';
+            scene.add(lineYellow1);
+
+            const lineYellow2 = new THREE.Mesh(lineGeo, yellowMat);
+            lineYellow2.rotation.x = -Math.PI / 2;
+            lineYellow2.position.set(0, yLines, 0.15);
+            lineYellow2.name = 'environment';
+            scene.add(lineYellow2);
+
+            const lineWhiteRight = new THREE.Mesh(lineGeo, whiteMat);
+            lineWhiteRight.rotation.x = -Math.PI / 2;
+            lineWhiteRight.position.set(0, yLines, 7.8);
+            lineWhiteRight.name = 'environment';
+            scene.add(lineWhiteRight);
+
+            const lineWhiteLeft = new THREE.Mesh(lineGeo, whiteMat);
+            lineWhiteLeft.rotation.x = -Math.PI / 2;
+            lineWhiteLeft.position.set(0, yLines, -7.8);
+            lineWhiteLeft.name = 'environment';
+            scene.add(lineWhiteLeft);
+
+            const geometry = new THREE.BoxGeometry(containerDim.length, containerDim.height, containerDim.width);
+            const edges = new THREE.EdgesGeometry(geometry);
+            const containerMeshMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 10 });
+            containerMesh = new THREE.LineSegments(edges, containerMeshMat);
+            containerMesh.position.set(containerDim.length/2, containerDim.height/2, -4.0);
+            containerMesh.castShadow = false;
+            scene.add(containerMesh);
+
+            cargoGroup.position.set(
+                -containerDim.length / 2,
+                -containerDim.height / 2,
+                -containerDim.width / 2
+            );
+            containerMesh.add(cargoGroup); 
+
+            const floorGeo = new THREE.PlaneGeometry(containerDim.length, containerDim.width);
+            const floorMat = new THREE.MeshBasicMaterial({ color: "black", transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(0, -containerDim.height / 2 + 0.0, 0); 
+            floor.castShadow = false; 
+            floor.receiveShadow = false;
+            containerMesh.add(floor); 
+        }
+
+        function initDragControls() {
+            if (dragControls) dragControls.dispose();
+            dragControls = new DragControls(draggableObjects, camera, renderer.domElement);
+            let startPosition = new THREE.Vector3();
+
+            dragControls.addEventListener('dragstart', function (event) {
+                orbitControls.enabled = false;
+                startPosition.copy(event.object.position);
+                event.object.material.opacity = 0.7;
+                showDynamicStatus('Movendo...', 'neutral');
+            });
+
+            dragControls.addEventListener('drag', function(event) {
+                const obj = event.object;
+                let rawX = obj.position.x;
+                let rawZ = obj.position.z;
+                
+                const snapped = applyMagneticSnap(obj, rawX, rawZ);
+                const dims = getDimensions(obj);
+                
+                const landingY = findLandingSurfaceHeight(obj, snapped.x, snapped.z, dims.l, dims.w);
+                
+                obj.position.set(snapped.x, landingY + dims.h/2, snapped.z);
+                
+                const logicPos = getLogicPos(obj);
+                const status = validatePosition(obj, logicPos);
+                
+                if (status === "VALID_INSIDE") {
+                    obj.material.emissive.setHex(0x22c55e); 
+                    obj.material.color.setHex(0x22c55e);
+                    showDynamicStatus('Posição Válida', 'ok');
+                } else if (status === "VALID_OUTSIDE") {
+                    obj.material.emissive.setHex(0xeab308); 
+                    obj.material.color.setHex(0xeab308);
+                    showDynamicStatus('Zona de Descarte', 'warn');
+                } else {
+                    obj.material.emissive.setHex(0xef4444); 
+                    obj.material.color.setHex(0xef4444);
+                    showDynamicStatus('Colisão!', 'error');
+                }
+            });
+
+            dragControls.addEventListener('dragend', function (event) {
+                orbitControls.enabled = true;
+                const obj = event.object;
+                obj.material.opacity = 0.9;
+                obj.material.emissive.setHex(0x000000); 
+                const logicPos = getLogicPos(obj);
+                const status = validatePosition(obj, logicPos);
+                if (status !== "INVALID") {
+                    obj.material.color.setHex(obj.userData.originalColor);
+                    updateObjectUserData(obj, logicPos);
+                    
+                    applyGravityToAll();
+
+                    updateStats();
+                    showDynamicStatus('Posicionado', 'neutral');
+                    setTimeout(() => document.getElementById('dynamic-status').style.opacity = '0', 1000);
+                } else {
+                    obj.position.copy(startPosition);
+                    obj.material.color.setHex(obj.userData.originalColor);
+                    showDynamicStatus('Cancelado', 'error');
+                    setTimeout(() => document.getElementById('dynamic-status').style.opacity = '0', 1000);
+                }
+            });
+        }
+
+        function applyMagneticSnap(obj, x, z) {
+            const dims = getDimensions(obj);
+            let bestX = x; let bestZ = z;
+            let minDistX = MAGNETIC_RANGE; let minDistZ = MAGNETIC_RANGE;
+
+            if (Math.abs(x - dims.l/2) < minDistX) { bestX = dims.l/2; minDistX = 0; }
+            if (Math.abs(z - dims.w/2) < minDistZ) { bestZ = dims.w/2; minDistZ = 0; }
+
+            for (let other of draggableObjects) {
+                if (other === obj) continue;
+                const otherPos = getLogicPos(other);
+                const rightSideSnap = otherPos.x + otherPos.l + SPACING + dims.l/2;
+                if (Math.abs(x - rightSideSnap) < minDistX) { bestX = rightSideSnap; minDistX = Math.abs(x - rightSideSnap); }
+                const leftSideSnap = otherPos.x - SPACING - dims.l/2;
+                if (Math.abs(x - leftSideSnap) < minDistX) { bestX = leftSideSnap; minDistX = Math.abs(x - leftSideSnap); }
+                if (Math.abs(z - (otherPos.z + otherPos.w/2)) < otherPos.w/2 + dims.w/2 + 0.5) {
+                    const alignLeft = otherPos.x + dims.l/2;
+                    if (Math.abs(x - alignLeft) < minDistX) { bestX = alignLeft; minDistX = Math.abs(x - alignLeft); }
+                }
+                const frontSnap = otherPos.z + otherPos.w + SPACING + dims.w/2;
+                if (Math.abs(z - frontSnap) < minDistZ) { bestZ = frontSnap; minDistZ = Math.abs(z - frontSnap); }
+                const backSnap = otherPos.z - SPACING - dims.w/2;
+                if (Math.abs(z - backSnap) < minDistZ) { bestZ = backSnap; minDistZ = Math.abs(z - backSnap); }
+                if (Math.abs(x - (otherPos.x + otherPos.l/2)) < otherPos.l/2 + dims.l/2 + 0.5) {
+                    const alignBack = otherPos.z + dims.w/2;
+                    if (Math.abs(z - alignBack) < minDistZ) { bestZ = alignBack; minDistZ = Math.abs(z - alignBack); }
+                }
+            }
+            return { x: bestX, z: bestZ };
+        }
+
+        function getDimensions(mesh) {
+            return { l: mesh.geometry.parameters.width, h: mesh.geometry.parameters.height, w: mesh.geometry.parameters.depth };
+        }
+
+        function getLogicPos(mesh) {
+            return {
+                x: mesh.position.x - mesh.geometry.parameters.width / 2,
+                y: mesh.position.y - mesh.geometry.parameters.height / 2,
+                z: mesh.position.z - mesh.geometry.parameters.depth / 2,
+                l: mesh.geometry.parameters.width,
+                h: mesh.geometry.parameters.height,
+                w: mesh.geometry.parameters.depth
+            };
+        }
+
+        function findLandingSurfaceHeight(activeObj, centerX, centerZ, len, wid) {
+            let maxY = 0;
+            const myMinX = centerX - len/2; const myMaxX = centerX + len/2;
+            const myMinZ = centerZ - wid/2; const myMaxZ = centerZ + wid/2;
+            const tolerance = 0.01;
+
+            for (let other of draggableObjects) {
+                if (other === activeObj) continue;
+                const otherPos = getLogicPos(other);
+                const otherMaxX = otherPos.x + otherPos.l;
+                const otherMaxZ = otherPos.z + otherPos.w;
+                const otherTopY = otherPos.y + otherPos.h;
+                const intersectX = (myMinX < otherMaxX - tolerance) && (myMaxX > otherPos.x + tolerance);
+                const intersectZ = (myMinZ < otherMaxZ - tolerance) && (myMaxZ > otherPos.z + tolerance);
+                if (intersectX && intersectZ) {
+                    if (otherTopY > maxY) maxY = otherTopY;
+                }
+            }
+            return maxY;
+        }
+
+        function validatePosition(activeMesh, pos) {
+            const EPS = 0.001;
+            for (let other of draggableObjects) {
+                if (other === activeMesh) continue;
+                const otherPos = getLogicPos(other);
+                if (boxesIntersectStrict(pos, otherPos)) return "INVALID";
+            }
+            const insideX = pos.x >= -EPS && pos.x + pos.l <= containerDim.length + EPS;
+            const insideZ = pos.z >= -EPS && pos.z + pos.w <= containerDim.width + EPS;
+            const insideY = pos.y >= -EPS && pos.y + pos.h <= containerDim.height + EPS;
+            if (insideX && insideZ) {
+                if (!insideY) return "INVALID"; 
+                if (checkSupport(activeMesh, pos, 0.40)) return "VALID_INSIDE";
+                else return "INVALID";
+            }
+            const completelyOutsideX = (pos.x + pos.l < EPS) || (pos.x > containerDim.length - EPS);
+            const completelyOutsideZ = (pos.z + pos.w < EPS) || (pos.z > containerDim.width - EPS);
+            if (completelyOutsideX || completelyOutsideZ) return "VALID_OUTSIDE";
+            return "INVALID";
+        }
+
+        function boxesIntersectStrict(a, b) {
+            const gap = 0.005; 
+            return (a.x < b.x + b.l - gap && a.x + a.l > b.x + gap &&
+                    a.y < b.y + b.h - gap && a.y + a.h > b.y + gap &&
+                    a.z < b.z + b.w - gap && a.z + a.w > b.z + gap);
+        }
+
+        function checkSupport(activeMesh, pos, threshold = 0.40) {
+            if (pos.y <= 0.01) return true;
+            let supportedArea = 0;
+            const baseArea = pos.l * pos.w;
+            for (let other of draggableObjects) {
+                if (other === activeMesh) continue;
+                const otherPos = getLogicPos(other);
+                if (Math.abs((otherPos.y + otherPos.h) - pos.y) < 0.05) {
+                    const xOverlap = Math.max(0, Math.min(pos.x + pos.l, otherPos.x + otherPos.l) - Math.max(pos.x, otherPos.x));
+                    const zOverlap = Math.max(0, Math.min(pos.z + pos.w, otherPos.z + otherPos.w) - Math.max(pos.z, otherPos.z));
+                    supportedArea += xOverlap * zOverlap;
+                }
+            }
+            return (supportedArea / baseArea) >= threshold;
+        }
+
+        function updateObjectUserData(mesh, pos) {
+            mesh.userData.x = pos.x; mesh.userData.y = pos.y; mesh.userData.z = pos.z;
+        }
+
+        function runSimulation() {
+            clearScene();
+            drawContainerFrame();
+            
+            let allPallets = [];
+            let allPackages = [];
+
+            document.querySelectorAll('#products-list > div:not(#product-template)').forEach((row, idx) => {
+                const name = row.querySelector('[data-field="name"]').value;
+                if(!name) return;
+                
+                const dbData = productDatabase.find(p => p['Nome do produto'] === name);
+                if (!dbData) return;
+                
+                const dims = {
+                    l: Number(dbData.comprimento),
+                    w: Number(dbData.largura),
+                    h: Number(dbData.altura),
+                    palletW: Number(dbData['peso do palete']),
+                    pkgW: Number(dbData['peso do pacote']),
+                    pkgPerPallet: Number(dbData['pacotes por palete'])
+                };
+                
+                const pQty = parseInt(row.querySelector('[data-field="pallet_qty"]').value) || 0;
+                const color = baseColors[idx % baseColors.length];
+
+                for(let i=0; i<pQty; i++) {
+                    allPallets.push({...dims, type: 'pallet', name, color, finalH: dims.h, weight: dims.palletW});
+                }
+            });
+
+            document.querySelectorAll('#products-list > div:not(#product-template)').forEach((row, idx) => {
+                const name = row.querySelector('[data-field="name"]').value;
+                if(!name) return;
+                
+                const dbData = productDatabase.find(p => p['Nome do produto'] === name);
+                if (!dbData) return;
+                
+                const dims = {
+                    l: Number(dbData.comprimento),
+                    w: Number(dbData.largura),
+                    h: Number(dbData.altura),
+                    palletW: Number(dbData['peso do palete']),
+                    pkgW: Number(dbData['peso do pacote']),
+                    pkgPerPallet: Number(dbData['pacotes por palete'])
+                };
+                
+                const pkgQty = parseInt(row.querySelector('[data-field="package_qty"]').value) || 0;
+                const color = baseColors[idx % baseColors.length];
+                const looseH = dims.h / dims.pkgPerPallet;
+
+                for(let i=0; i<pkgQty; i++) {
+                    allPackages.push({...dims, type: 'package', name, color, finalH: looseH, weight: dims.pkgW});
+                }
+            });
+
+            const itemsToLoad = [...allPallets, ...allPackages];
+
+            for (let item of itemsToLoad) {
+                const pos = findBestSpot(item);
+                if (pos) createBox(item, pos);
+            }
+
+            initDragControls();
+            updateStats();
+        }
+
+        function findBestSpot(item) {
+            let candidates = [{x:0, y:0, z:0}];
+            draggableObjects.forEach(obj => {
+                const p = getLogicPos(obj);
+                if (p.x + p.l + SPACING <= containerDim.length) candidates.push({x: p.x + p.l + SPACING, y: p.y, z: p.z});
+                if (p.z + p.w + SPACING <= containerDim.width) candidates.push({x: p.x, y: p.y, z: p.z + p.w + SPACING});
+                if (p.y + p.h + item.finalH <= containerDim.height) candidates.push({x: p.x, y: p.y + p.h, z: p.z});
+            });
+
+            candidates.sort((a,b) => {
+                const diffX = a.x - b.x;
+                if (Math.abs(diffX) > 0.1) return diffX; 
+                const diffY = a.y - b.y;
+                if (Math.abs(diffY) > 0.1) return diffY;
+                return a.z - b.z;
+            });
+
+            for (let c of candidates) {
+                const testPos = { x: c.x, y: c.y, z: c.z, l: item.l, h: item.finalH, w: item.w };
+                const fakeMesh = { position: { x: c.x + item.l/2, y: c.y + item.finalH/2, z: c.z + item.w/2 }, geometry: { parameters: { width: item.l, height: item.finalH, depth: item.w } } };
+                if (validatePosition(fakeMesh, testPos) === "VALID_INSIDE") return c;
+            }
+            return null;
+        }
+
+        function createBox(item, pos) {
+            const geometry = new THREE.BoxGeometry(item.l, item.finalH, item.w);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: item.color, 
+                transparent: true, 
+                opacity: 0.9,
+                roughness: 0.3,
+                metalness: 0.1
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(pos.x + item.l/2, pos.y + item.finalH/2, pos.z + item.w/2);
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            cube.userData = { ...item, x: pos.x, y: pos.y, z: pos.z, originalColor: item.color };
+            
+            const edges = new THREE.EdgesGeometry(geometry);
+            const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true }));
+            edgeLines.raycast = () => {};
+            cube.add(edgeLines);
+            
+            if (item.type === 'pallet') {
+                const y1 = -item.finalH / 6;
+                const y2 =  item.finalH / 6;
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.5, transparent: true });
+                const points1 = [ new THREE.Vector3(-item.l/2, y1, -item.w/2), new THREE.Vector3( item.l/2, y1, -item.w/2), new THREE.Vector3( item.l/2, y1,  item.w/2), new THREE.Vector3(-item.l/2, y1,  item.w/2), new THREE.Vector3(-item.l/2, y1, -item.w/2) ];
+                const geo1 = new THREE.BufferGeometry().setFromPoints(points1);
+                const line1 = new THREE.Line(geo1, lineMat);
+                line1.raycast = () => {};
+                cube.add(line1);
+
+                const points2 = [ new THREE.Vector3(-item.l/2, y2, -item.w/2), new THREE.Vector3( item.l/2, y2, -item.w/2), new THREE.Vector3( item.l/2, y2,  item.w/2), new THREE.Vector3(-item.l/2, y2,  item.w/2), new THREE.Vector3(-item.l/2, y2, -item.w/2) ];
+                const geo2 = new THREE.BufferGeometry().setFromPoints(points2);
+                const line2 = new THREE.Line(geo2, lineMat);
+                line2.raycast = () => {};
+                cube.add(line2);
+            }
+
+            if(cargoGroup) cargoGroup.add(cube);
+            else scene.add(cube);
+
+            draggableObjects.push(cube);
+        }
+
+        function clearScene() {
+            if (cargoGroup) {
+                while(cargoGroup.children.length > 0){ 
+                    const obj = cargoGroup.children[0];
+                    cargoGroup.remove(obj);
+                    
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+                        else obj.material.dispose();
+                    }
+                    if (obj.children) {
+                        obj.children.forEach(c => {
+                            if(c.geometry) c.geometry.dispose();
+                            if(c.material) c.material.dispose();
+                        });
+                    }
+                }
+            }
+            draggableObjects.length = 0;
+            updateStats();
+        }
+
+        // --- UI ---
+        function setupUI() {
+            document.getElementById('add-product-btn').addEventListener('click', addProductRow);
+            document.getElementById('simulate-btn').addEventListener('click', runSimulation);
+            document.getElementById('save-btn').addEventListener('click', saveJSON);
+            document.getElementById('load-file').addEventListener('change', loadJSON);
+            document.getElementById('pdf-btn').addEventListener('click', generatePDF);
+            document.getElementById('import-excel').addEventListener('change', handleExcelUpload);
+            
+            // ATUALIZAÇÃO EM TEMPO REAL AO DIGITAR O PESO META
+            document.getElementById('info-target-weight').addEventListener('input', updateStats);
+
+            const list = document.getElementById('products-list');
+            list.addEventListener('click', e => {
+                const btn = e.target.closest('.remove-btn');
+                if(btn) {
+                    btn.closest('.glass-card').remove();
+                    updateProductCount();
+                }
+            });
+            list.addEventListener('change', e => {
+                if(e.target.dataset.field === 'name') fillProductData(e.target);
+            });
+            
+            addProductRow();
+        }
+
+        // --- MANIPULAÇÃO DO EXCEL ---
+        async function handleExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                showDynamicStatus('Lendo Excel...', 'neutral');
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+                const firstSheet = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheet];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                if (json && json.length > 0) {
+                    const reqCols = ["Nome do produto", "comprimento", "largura", "altura"];
+                    const missing = reqCols.filter(col => !(col in json[0]));
+                    if (missing.length > 0) {
+                         showDynamicStatus(`Falta colunas: ${missing.join(', ')}`, 'error');
+                         return;
+                    }
+
+                    productDatabase = json;
+                    localStorage.setItem('expama_simulador_db', JSON.stringify(json));
+                    updateAllDropdowns();
+                    showDynamicStatus('Base Atualizada!', 'ok');
+                } else {
+                    showDynamicStatus('Planilha Vazia?', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showDynamicStatus('Erro no Excel', 'error');
+            }
+        }
+
+        function updateAllDropdowns() {
+            const selects = document.querySelectorAll('#products-list select[data-field="name"]');
+            selects.forEach(sel => {
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">Selecione...</option>' + productDatabase.map(p => `<option value="${p['Nome do produto']}">${p['Nome do produto']}</option>`).join('');
+                sel.value = currentVal; 
+            });
+        }
+
+        function updateProductCount() {
+            const count = document.querySelectorAll('#products-list > div:not(#product-template)').length;
+            document.getElementById('product-count').textContent = count;
+        }
+
+        function addProductRow() {
+            const tpl = document.getElementById('product-template');
+            const clone = tpl.cloneNode(true);
+            clone.id = ""; clone.classList.remove('hidden');
+            const sel = clone.querySelector('select');
+            sel.innerHTML = '<option value="">Selecione...</option>' + productDatabase.map(p => `<option value="${p['Nome do produto']}">${p['Nome do produto']}</option>`).join('');
+            document.getElementById('products-list').appendChild(clone);
+            lucide.createIcons();
+            updateProductCount();
+        }
+
+        function fillProductData(select) {
+            const data = productDatabase.find(p => p['Nome do produto'] === select.value);
+            if(!data) return;
+            const row = select.closest('div.glass-card');
+            row.querySelector('[data-field="length"]').value = data.comprimento;
+            row.querySelector('[data-field="width"]').value = data.largura;
+            row.querySelector('[data-field="height"]').value = data.altura;
+        }
+
+        function showDynamicStatus(text, type) {
+            const el = document.getElementById('dynamic-status');
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            txt.textContent = text;
+            el.style.opacity = '1';
+            if(type === 'ok') dot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]';
+            else if(type === 'warn') dot.className = 'w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]';
+            else if(type === 'error') dot.className = 'w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]';
+            else dot.className = 'w-2 h-2 rounded-full bg-blue-500';
+        }
+
+        function saveJSON() {
+            const data = draggableObjects.map(o => o.userData);
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'layout_carga.json'; a.click();
+        }
+
+        function loadJSON(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                clearScene();
+                JSON.parse(ev.target.result).forEach(item => createBox(item, {x: item.x, y: item.y, z: item.z}));
+                initDragControls();
+                updateStats();
+            };
+            reader.readAsText(file);
+        }
+
+        function onWindowResize() {
+            camera.aspect = document.getElementById('canvas-container').clientWidth / document.getElementById('canvas-container').clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.getElementById('canvas-container').clientWidth, document.getElementById('canvas-container').clientHeight);
+        }
+
+        // --- FUNÇÕES DE STATUS E FORMATAÇÃO (ATUALIZADAS) ---
+        
+        function formatWeight(n) {
+            // Padrão brasileiro, sempre 3 casas decimais
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+
+        function updateStats() {
+            let totalW = 0;
+            let totalUnits = 0;
+            let totalVol = 0;
+
+            draggableObjects.forEach(o => {
+                totalW += (o.userData.weight || 0);
+                
+                if (o.userData.type === 'pallet') {
+                    totalUnits += (o.userData.pkgPerPallet || 3);
+                } else {
+                    totalUnits += 1;
+                }
+
+                // Volume (L * A * P)
+                const vol = (o.userData.l * o.userData.h * o.userData.w);
+                totalVol += vol;
+            });
+
+            // Pega o Peso de Destino (Meta)
+            const targetInput = document.getElementById('info-target-weight');
+            const targetW = parseFloat(targetInput.value) || 0;
+
+            // Atualiza os textos
+            document.getElementById('stat-count').textContent = totalUnits;
+            document.getElementById('stat-weight').textContent = formatWeight(totalW) + ' kg';
+            
+            const volEl = document.getElementById('stat-volume');
+            if(volEl) volEl.textContent = formatWeight(totalVol) + ' m³';
+
+            const targetEl = document.getElementById('stat-target');
+            if(targetEl) targetEl.textContent = formatWeight(targetW) + ' kg';
+
+            // Lógica de Excesso de Peso
+            const warnEl = document.getElementById('stat-excess-warn');
+            const warnVal = document.getElementById('stat-excess-val');
+            const weightText = document.getElementById('stat-weight');
+            
+            if (targetW > 0 && totalW > targetW) {
+                const excess = totalW - targetW;
+                warnEl.classList.remove('hidden');
+                warnVal.textContent = '+' + formatWeight(excess) + ' kg';
+                
+                weightText.classList.add('text-red-400');
+                weightText.classList.remove('text-white');
+            } else {
+                warnEl.classList.add('hidden');
+                weightText.classList.remove('text-red-400');
+                weightText.classList.add('text-white');
+            }
+        }
+        
+        function formatNum(n, decimals = 0) {
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+        // ----------------------------------------------------
+
+        // --- GERAÇÃO DE PDF COMPACTO (CORRIGIDO) ---
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // --- 1. Coleta de Dados ---
+            const client = document.getElementById('info-client').value || "---";
+            const dest = document.getElementById('info-dest').value || "---";
+            const targetWeightStr = document.getElementById('info-target-weight').value || "0";
+            const targetWeight = parseFloat(targetWeightStr);
+            const po = document.getElementById('info-po').value || "---";
+            const containerNum = document.getElementById('info-container-id').value || "---";
+            const date = document.getElementById('info-date').value || new Date().toLocaleDateString('pt-BR');
+            const responsible = document.getElementById('info-responsible').value || "---";
+
+            let globalBruto = 0;
+            let globalPecas = 0;
+            let globalUnits = 0;
+            let globalM3 = 0;
+
+            const groups = {};
+
+            draggableObjects.forEach(obj => {
+                const name = obj.userData.name;
+                const db = productDatabase.find(p => p['Nome do produto'] === name);
+                if (!db) return;
+
+                if (!groups[name]) {
+                    groups[name] = {
+                        name: name,
+                        color: obj.userData.originalColor,
+                        countPallet: 0,
+                        countLoose: 0,
+                        db: db
+                    };
+                }
+
+                if (obj.userData.type === 'pallet') {
+                    groups[name].countPallet++;
+                    globalBruto += db['peso do palete'];
+                } else {
+                    groups[name].countLoose++;
+                    globalBruto += db['peso do pacote'];
+                }
+            });
+
+            for (const key in groups) {
+                const g = groups[key];
+                const pkgsInPallets = g.countPallet * g.db['pacotes por palete'];
+                const totalPkgs = pkgsInPallets + g.countLoose;
+                const totalPecas = totalPkgs * g.db['quantidade de peças por pacote'];
+                const totalM3 = totalPkgs * g.db['m3 do pacote'];
+
+                globalPecas += totalPecas;
+                globalUnits += totalPkgs;
+                globalM3 += totalM3;
+
+                g.calculated = {
+                    totalPkgs: totalPkgs,
+                    totalPecas: totalPecas,
+                    totalM3: totalM3,
+                    netWeight: (g.countPallet * g.db['peso liquido do palete']) + (g.countLoose * g.db['peso liquido do pacote']),
+                    totalLF: totalPecas * (g.db['comprimento'] / 0.3048),
+                    totalBDL: totalPecas / g.db['peça no mini fardo']
+                };
+            }
+
+            const diffPeso = targetWeight - globalBruto;
+            const utilization = targetWeight > 0 ? (globalBruto / targetWeight) * 100 : 0;
+
+            // --- 2. Layout Visual (COMPACTADO) ---
+
+            // >>>> CABEÇALHO (25mm) <<<<
+            doc.setFillColor(240, 240, 240);
+            doc.rect(0, 0, 210, 25, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(19);
+            doc.text("CONFIGURAÇÃO DE CARGA", 105, 17, { align: 'center' });
+            doc.setFontSize(7);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Data: ${date}`, 190, 17, { align: 'right' });
+
+            // >>>> INFO CLIENTE (Y=32) <<<<
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9); 
+            const infoStartY = 32; 
+            const infoLineHeight = 4.5; 
+
+            doc.text(`Cliente: ${client}`, 14, infoStartY);
+            doc.text(`Destino: ${dest}`, 14, infoStartY + infoLineHeight);
+            doc.text(`PO: ${po}`, 14, infoStartY + (infoLineHeight * 2));
+
+            doc.text(`Nº Container: ${containerNum}`, 110, infoStartY);
+            doc.text(`Responsável: ${responsible}`, 110, infoStartY + infoLineHeight);
+
+            // >>>> RESUMO CINZA (Y=48, Altura=30) <<<<
+            doc.setFillColor(240, 240, 240);
+            const summaryBoxY = 48; 
+            const summaryBoxH = 30; 
+            doc.rect(14, summaryBoxY, 180, summaryBoxH, 'F');
+
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            const sumTextStartY = summaryBoxY + 6;
+            const sumLineH = 5.5;
+
+            // Coluna Esquerda
+            doc.text(`Peso De Destino: ${formatNum(targetWeight, 3)} kg`, 20, sumTextStartY + sumLineH);
+            doc.text(`Peso Bruto Carregado: ${formatNum(globalBruto, 3)} kg`, 20, sumTextStartY);
+
+            if (diffPeso >= 0) {
+                doc.setTextColor(0, 150, 0);
+                doc.text(`Sobra de Peso: ${formatNum(diffPeso, 3)} kg`, 20, sumTextStartY + (sumLineH * 2));
+            } else {
+                doc.setTextColor(220, 0, 0);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Excesso de Peso: ${formatNum(Math.abs(diffPeso), 3)} kg`, 20, sumTextStartY + (sumLineH * 2));
+                doc.setFont("helvetica", "normal");
+            }
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Utilização: ${formatNum(utilization, 2)}%`, 20, sumTextStartY + (sumLineH * 3));
+
+            // Coluna Direita
+            doc.text(`Total Peças: ${formatNum(globalPecas)}`, 110, sumTextStartY);
+            doc.text(`Total Unit: ${globalUnits}`, 110, sumTextStartY + sumLineH);
+            doc.text(`Total M³: ${formatNum(globalM3, 3)}`, 110, sumTextStartY + (sumLineH * 2));
+
+            // --- 3. Captura Imagem (COM FUNDO 100% BRANCO) ---
+            const originalSize = { width: renderer.domElement.width, height: renderer.domElement.height };
+            const originalAspect = camera.aspect;
+            
+            // 1. Salvar os estados originais da cena (Fundo e Neblina)
+            const originalBg = scene.background ? scene.background.clone() : new THREE.Color(0xffffff);
+            const originalFogColor = scene.fog ? scene.fog.color.clone() : null;
+
+            const printWidth = 2400;
+            const printHeight = 1000; 
+
+            renderer.setSize(printWidth, printHeight);
+            camera.aspect = printWidth / printHeight;
+            camera.updateProjectionMatrix();
+
+            // 2. MUDAR TUDO PARA BRANCO PURO
+            // Isso remove a parte preta de cima
+            scene.background = new THREE.Color(0xffffff); 
+            
+            // IMPORTANTE: Se tiver neblina (fog), ela precisa ficar branca também, 
+            // senão o horizonte continua preto/escuro.
+            if (scene.fog) {
+                scene.fog.color.set(0xffffff);
+            }
+
+            renderer.render(scene, camera);
+            const imgData = renderer.domElement.toDataURL("image/png", 0.90);
+
+            // 3. Restaurar a cena para como estava antes (Escuro)
+            renderer.setSize(originalSize.width, originalSize.height);
+            camera.aspect = originalAspect;
+            camera.updateProjectionMatrix();
+            
+            scene.background = originalBg;
+            if (scene.fog && originalFogColor) {
+                scene.fog.color.copy(originalFogColor);
+            }
+            renderer.render(scene, camera);
+
+            // >>>> IMAGEM COLADA NO RESUMO <<<<
+            const imageY = summaryBoxY + summaryBoxH + 2; 
+            const imageHeight = 65; 
+            doc.addImage(imgData, 'PHG', 14, imageY, 180, imageHeight);
+
+            // --- 4. Detalhamento (Todos os campos incluídos) ---
+            const detailsTitleY = imageY + imageHeight + 8; 
+            doc.setFontSize(11);
+            doc.setTextColor(0,0,0);
+            doc.setFont("helvetica", "bold");
+            doc.text("Detalhamento por Produto", 14, detailsTitleY);
+
+            let yPos = detailsTitleY + 8;
+            const blockHeight = 28; // Altura fixa por produto
+
+            doc.setFontSize(8); 
+
+            for (const key in groups) {
+                const g = groups[key];
+                const calc = g.calculated;
+
+                // Nova página se não couber
+                if (yPos + blockHeight > 285) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                const c = g.color;
+                const r = (c >> 16) & 255;
+                const gr = (c >> 8) & 255;
+                const b = c & 255;
+
+                // Barra Colorida
+                doc.setFillColor(r, gr, b);
+                doc.rect(14, yPos, 3, 22, 'F'); 
+
+                // Título
+                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "bold");
+                doc.text(g.name, 19, yPos + 4);
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(60, 60, 60);
+
+                // Colunas X
+                const col1 = 19;
+                const col2 = 80;
+                const col3 = 145;
+
+                // Linhas Y
+                const row1 = yPos + 9;
+                const row2 = yPos + 13;
+                const row3 = yPos + 17;
+                const row4 = yPos + 21;
+
+                // COLUNA 1
+                doc.text(`Pallets: ${g.countPallet}`, col1, row1);
+                doc.text(`Avulsos: ${g.countLoose}`, col1, row2);
+                doc.text(`Peso Líq.: ${formatNum(calc.netWeight, 2)} kg`, col1, row3);
+                doc.text(`Etiqueta: ${g.db['etiqueta peça']}`, col1, row4);
+
+                // COLUNA 2 (Com Amarradinho)
+                doc.text(`Amarradinho: ${g.db['amarradinho']}`, col2, row1);
+                doc.text(`Total Unit: ${calc.totalPkgs}`, col2, row2);
+                doc.text(`Total Peças: ${formatNum(calc.totalPecas)}`, col2, row3);
+                doc.text(`Total M³: ${formatNum(calc.totalM3, 3)}`, col2, row4);
+
+                // COLUNA 3 (Com LF e BDL)
+                doc.text(`Total LF: ${formatNum(calc.totalLF)}`, col3, row1);
+                doc.text(`Total BDL: ${formatNum(calc.totalBDL)}`, col3, row2);
+
+                // Linha divisória
+                doc.setDrawColor(230, 230, 230);
+                doc.line(14, yPos + 24, 196, yPos + 24);
+
+                yPos += blockHeight;
+            }
+
+            doc.save(`Relatório_Carga_${po}.pdf`);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            orbitControls.update();
+        }
+    </script>
+</body>
+</html>
