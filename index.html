@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Carga - EXPAMA</title>
+    <title>Simulador de Carga - EXPAMA (HD)</title>
 
     <link rel="icon" href="./Carga_flora.jpg" type="image/jpeg">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
     <script>
@@ -314,15 +311,17 @@
         const SPACING = 0.05; 
         const MAGNETIC_RANGE = 0.3; 
 
-        // Banco de Dados Default
+        // Banco de Dados Default 
         const defaultDatabase = [
-            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267514", "amarradinho": "10860012267511" },
-            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
-            { "Nome do produto": "PAINEL RIPADO MADEIRADO - 5 ¹/4 X 8'", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
-            { "Nome do produto": "MOLDURA L S4S 1 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.051, "altura": 2.47, "peso do palete": 3996.98796, "peso do pacote": 1332.32932, "quantidade de peças por pacote": 1092, "m3 do pacote": 1.72465, "peso liquido do palete": 3996.98796, "peso liquido do pacote": 1332.32932, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
-            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.038, "altura": 2.47, "peso do palete": 3948.56503, "peso do pacote": 1316.18834, "quantidade de peças por pacote": 294, "m3 do pacote": 1.70254, "peso liquido do palete": 3948.56503, "peso liquido do pacote": 1316.18834, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
-            { "Nome do produto": "MOLDURA L S4S 3 ¹/2 X 8'", "comprimento": 2.4384, "largura": 1.127, "altura": 2.47, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
-            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 12'", "comprimento": 3.6570, "largura": 1.038, "altura": 1.86, "peso do palete": 4214.89111, "peso do pacote": 1404.96370, "quantidade de peças por pacote": 210, "m3 do pacote": 1.82415, "peso liquido do palete": 4214.89111, "peso liquido do pacote": 1404.96370, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267576", "amarradinho": "20860012267570" }
+            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "cor": "#e5e7eb", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
+            {"Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267514", "amarradinho": "10860012267511" },
+            { "Nome do produto": "PAINEL RIPADO MADEIRADO - 5 ¹/4 X 8'", "cor": "#C36B05", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
+        
+            { "Nome do produto": "PAINEL RIPADO BICOLOR - 5 ¹/4 X 8'", "cor": "#1f2937", "cor2": "#f97316", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267BIC", "amarradinho": "10860012267BIC" },
+            { "Nome do produto": "MOLDURA L S4S 1 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.051, "altura": 2.47, "peso do palete": 3996.98796, "peso do pacote": 1332.32932, "quantidade de peças por pacote": 1092, "m3 do pacote": 1.72465, "peso liquido do palete": 3996.98796, "peso liquido do pacote": 1332.32932, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
+            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.038, "altura": 2.47, "peso do palete": 3948.56503, "peso do pacote": 1316.18834, "quantidade de peças por pacote": 294, "m3 do pacote": 1.70254, "peso liquido do palete": 3948.56503, "peso liquido do pacote": 1316.18834, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
+            { "Nome do produto": "MOLDURA L S4S 3 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.127, "altura": 2.47, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
+            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 12'", "cor": "#423F3B", "comprimento": 3.6570, "largura": 1.038, "altura": 1.86, "peso do palete": 4214.89111, "peso do pacote": 1404.96370, "quantidade de peças por pacote": 210, "m3 do pacote": 1.82415, "peso liquido do palete": 4214.89111, "peso liquido do pacote": 1404.96370, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267576", "amarradinho": "20860012267570" }
         ];
 
         let productDatabase = [...defaultDatabase];
@@ -330,20 +329,24 @@
 
         document.getElementById('info-date').valueAsDate = new Date();
 
-        function loadCachedDatabase() {
-            const cached = localStorage.getItem('expama_simulador_db');
-            if(cached) {
-                try {
-                    const parsed = JSON.parse(cached);
-                    if(Array.isArray(parsed) && parsed.length > 0) {
-                        productDatabase = parsed;
-                    }
-                } catch(e) { console.error(e); }
-            }
-        }
-        loadCachedDatabase();
+        // Limpa o cache antigo para evitar confusão de versões
+        localStorage.removeItem('expama_simulador_db');
 
-        // --- FUNÇÃO DE GRAVIDADE (Queda automática) ---
+        // --- Helper: Gera cor baseada no nome se não houver no DB ---
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let color = '#';
+            for (let i = 0; i < 3; i++) {
+                let value = (hash >> (i * 8)) & 0xFF;
+                color += ('00' + value.toString(16)).substr(-2);
+            }
+            return color;
+        }
+
+        
         function applyGravityToAll() {
             draggableObjects.sort((a, b) => a.position.y - b.position.y);
             let movedAny = false;
@@ -403,9 +406,7 @@
             const container = document.getElementById('canvas-container');
             
             scene = new THREE.Scene();
-            // CORRIGIDO: BRANCO TOTAL
             scene.background = new THREE.Color(0xffffff); 
-            // CORRIGIDO: REMOVIDO NEBLINA/FOG
             scene.fog = null; 
 
             camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -413,7 +414,6 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
-            // CORRIGIDO: NITIDEZ e CORES
             renderer.setPixelRatio(window.devicePixelRatio); 
             renderer.outputColorSpace = THREE.SRGBColorSpace;
             
@@ -422,7 +422,6 @@
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             container.appendChild(renderer.domElement);
 
-            // CORRIGIDO: LUZ MAIS FORTE (0.9)
             const ambient = new THREE.AmbientLight(0xffffff, 0.9); 
             scene.add(ambient);
             
@@ -467,16 +466,12 @@
             const yRoad = -1.63;
             const yLines = -1.62;
             
-            // OPÇÃO 2: Chão invisível que só mostra a sombra
             const grassGeo = new THREE.PlaneGeometry(100, 100);
-            
-            // ShadowMaterial é transparente, mas desenha a sombra preta em cima
             const grassMat = new THREE.ShadowMaterial({ opacity: 0.1 }); 
-            
             const grass = new THREE.Mesh(grassGeo, grassMat);
             grass.rotation.x = -Math.PI / 2;
             grass.position.set(0, yGrass, 0);
-            grass.receiveShadow = true; // Sombra continua funcionando
+            grass.receiveShadow = true; 
             grass.name = 'environment';
             scene.add(grass);
 
@@ -550,7 +545,15 @@
             dragControls.addEventListener('dragstart', function (event) {
                 orbitControls.enabled = false;
                 startPosition.copy(event.object.position);
-                event.object.material.opacity = 0.7;
+                
+                const obj = event.object;
+                // Handle both single material and array of materials
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m.opacity = 0.7);
+                } else {
+                    obj.material.opacity = 0.7;
+                }
+                
                 showDynamicStatus('Movendo...', 'neutral');
             });
 
@@ -569,17 +572,33 @@
                 const logicPos = getLogicPos(obj);
                 const status = validatePosition(obj, logicPos);
                 
+                // Helper to set emissive and color
+                const setVisuals = (colorHex, emissiveHex) => {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(m => {
+                            m.emissive.setHex(emissiveHex);
+                            // Only change base color for solid materials to preserve texture visual, or tint everything
+                            // To be safe and give feedback, we tint everything
+                            if (m.map) {
+                                m.color.setHex(0xffffff); // Keep texture bright but use emissive for feedback
+                            } else {
+                                m.color.setHex(colorHex);
+                            }
+                        });
+                    } else {
+                        obj.material.emissive.setHex(emissiveHex);
+                        obj.material.color.setHex(colorHex);
+                    }
+                };
+
                 if (status === "VALID_INSIDE") {
-                    obj.material.emissive.setHex(0x22c55e); 
-                    obj.material.color.setHex(0x22c55e);
+                    setVisuals(0x22c55e, 0x22c55e);
                     showDynamicStatus('Posição Válida', 'ok');
                 } else if (status === "VALID_OUTSIDE") {
-                    obj.material.emissive.setHex(0xeab308); 
-                    obj.material.color.setHex(0xeab308);
+                    setVisuals(0xeab308, 0xeab308);
                     showDynamicStatus('Zona de Descarte', 'warn');
                 } else {
-                    obj.material.emissive.setHex(0xef4444); 
-                    obj.material.color.setHex(0xef4444);
+                    setVisuals(0xef4444, 0xef4444);
                     showDynamicStatus('Colisão!', 'error');
                 }
             });
@@ -587,22 +606,48 @@
             dragControls.addEventListener('dragend', function (event) {
                 orbitControls.enabled = true;
                 const obj = event.object;
-                obj.material.opacity = 0.9;
-                obj.material.emissive.setHex(0x000000); 
+                
+                // Helper to restore
+                const restoreVisuals = () => {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(m => {
+                            m.opacity = 0.95;
+                            m.emissive.setHex(0x000000);
+                            
+                            // Restore original colors
+                            // Top/Bottom (indices 2,3) are solid primary
+                            // Sides are texture
+                            if (!m.map) {
+                                // Solid material
+                                const orig = obj.userData.originalColor;
+                                if(typeof orig === 'string') m.color.setStyle(orig);
+                                else m.color.setHex(orig);
+                            } else {
+                                // Texture material - reset to white base
+                                m.color.setHex(0xffffff);
+                            }
+                        });
+                    } else {
+                        obj.material.opacity = 0.95;
+                        obj.material.emissive.setHex(0x000000);
+                        const orig = obj.userData.originalColor;
+                        if(typeof orig === 'string') obj.material.color.setStyle(orig);
+                        else obj.material.color.setHex(orig);
+                    }
+                };
+
                 const logicPos = getLogicPos(obj);
                 const status = validatePosition(obj, logicPos);
                 if (status !== "INVALID") {
-                    obj.material.color.setHex(obj.userData.originalColor);
+                    restoreVisuals();
                     updateObjectUserData(obj, logicPos);
-                    
                     applyGravityToAll();
-
                     updateStats();
                     showDynamicStatus('Posicionado', 'neutral');
                     setTimeout(() => document.getElementById('dynamic-status').style.opacity = '0', 1000);
                 } else {
                     obj.position.copy(startPosition);
-                    obj.material.color.setHex(obj.userData.originalColor);
+                    restoreVisuals();
                     showDynamicStatus('Cancelado', 'error');
                     setTimeout(() => document.getElementById('dynamic-status').style.opacity = '0', 1000);
                 }
@@ -748,10 +793,13 @@
                 };
                 
                 const pQty = parseInt(row.querySelector('[data-field="pallet_qty"]').value) || 0;
-                const color = baseColors[idx % baseColors.length];
+                
+                // MUDANÇA: COR FIXA DO PRODUTO (OU GERADA SE NAO EXISTIR)
+                const color = dbData.cor || stringToColor(name);
+                const color2 = dbData.cor2 || null;
 
                 for(let i=0; i<pQty; i++) {
-                    allPallets.push({...dims, type: 'pallet', name, color, finalH: dims.h, weight: dims.palletW});
+                    allPallets.push({...dims, type: 'pallet', name, color, color2, finalH: dims.h, weight: dims.palletW});
                 }
             });
 
@@ -772,11 +820,13 @@
                 };
                 
                 const pkgQty = parseInt(row.querySelector('[data-field="package_qty"]').value) || 0;
-                const color = baseColors[idx % baseColors.length];
+                // MUDANÇA: COR FIXA DO PRODUTO (OU GERADA SE NAO EXISTIR)
+                const color = dbData.cor || stringToColor(name);
+                const color2 = dbData.cor2 || null;
                 const looseH = dims.h / dims.pkgPerPallet;
 
                 for(let i=0; i<pkgQty; i++) {
-                    allPackages.push({...dims, type: 'package', name, color, finalH: looseH, weight: dims.pkgW});
+                    allPackages.push({...dims, type: 'package', name, color, color2, finalH: looseH, weight: dims.pkgW});
                 }
             });
 
@@ -816,30 +866,109 @@
             return null;
         }
 
+        // --- ATUALIZAÇÃO: Lógica HD Bicolor com Anisotropia ---
         function createBox(item, pos) {
             const geometry = new THREE.BoxGeometry(item.l, item.finalH, item.w);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: item.color, 
-                transparent: true, 
-                opacity: 0.9,
-                roughness: 0.3,
-                metalness: 0.1
-            });
+            let material;
+
+            // Material Settings para um look mais realista e menos embaçado
+            const matSettings = {
+                transparent: true,
+                opacity: 0.95,       // Aumentei levemente para ficar mais sólido
+                roughness: 0.7,      // Mais fosco (menos reflexo "plástico")
+                metalness: 0.05,
+                polygonOffset: true, // Ajuda a evitar conflito visual nas bordas
+                polygonOffsetFactor: 1, 
+                polygonOffsetUnits: 1
+            };
+
+            if (item.color2) {
+                // --- LÓGICA BICOLOR (COM TEXTURA HD) ---
+                const canvas = document.createElement('canvas');
+                // AUMENTO DE RESOLUÇÃO: 1024px para nitidez total
+                canvas.width = 1024; canvas.height = 1024; 
+                const ctx = canvas.getContext('2d');
+                
+                // Repetição baseada em pacotes vs palete
+                const numRepeats = (item.type === 'pallet') ? (item.pkgPerPallet || 1) : 1;
+                const segmentHeight = canvas.height / numRepeats;
+
+                for (let i = 0; i < numRepeats; i++) {
+                    const currentY = i * segmentHeight;
+                    const halfSegment = segmentHeight / 2;
+
+                    // Cor 1 (Metade Superior)
+                    ctx.fillStyle = item.color;
+                    ctx.fillRect(0, currentY, canvas.width, Math.ceil(halfSegment));
+                    
+                    // Cor 2 (Metade Inferior)
+                    ctx.fillStyle = item.color2;
+                    ctx.fillRect(0, currentY + halfSegment - 1, canvas.width, Math.ceil(halfSegment) + 1);
+                }
+                
+                const tex = new THREE.CanvasTexture(canvas);
+                // MELHORIA DE FILTRO
+                tex.minFilter = THREE.LinearFilter;
+                tex.magFilter = THREE.LinearFilter; 
+                // ANISOTROPIA: Evita borrão quando visto de ângulo
+                tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                tex.wrapS = THREE.ClampToEdgeWrapping;
+                tex.wrapT = THREE.ClampToEdgeWrapping;
+                tex.needsUpdate = true;
+                
+                // Material para LATERAIS (Textura)
+                const matTexture = new THREE.MeshStandardMaterial({ 
+                    ...matSettings,
+                    map: tex,
+                    color: 0xffffff // Base branca para a textura aparecer fiel
+                });
+
+                // Material para TOPO e FUNDO (Sólido)
+                // Usamos a COR 1 (item.color) para o topo.
+                const matSolid = new THREE.MeshStandardMaterial({ 
+                    ...matSettings,
+                    color: item.color 
+                });
+
+                // Array de materiais
+                material = [
+                    matTexture, // Dir
+                    matTexture, // Esq
+                    matSolid,   // Topo (Agora fica da cor correta)
+                    matSolid,   // Fundo
+                    matTexture, // Frente
+                    matTexture  // Trás
+                ];
+
+            } else {
+                // --- LÓGICA COR ÚNICA ---
+                material = new THREE.MeshStandardMaterial({ 
+                    ...matSettings,
+                    color: item.color 
+                });
+            }
+
             const cube = new THREE.Mesh(geometry, material);
             cube.position.set(pos.x + item.l/2, pos.y + item.finalH/2, pos.z + item.w/2);
             cube.castShadow = true;
             cube.receiveShadow = true;
-            cube.userData = { ...item, x: pos.x, y: pos.y, z: pos.z, originalColor: item.color };
             
+            // Salva a cor real (item.color) para restauração correta após clique
+            const saveColor = item.color; 
+            
+            cube.userData = { ...item, x: pos.x, y: pos.y, z: pos.z, originalColor: saveColor, originalColor2: item.color2 };
+            
+            // --- Arestas (Outline mais forte) ---
             const edges = new THREE.EdgesGeometry(geometry);
-            const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true }));
+            const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.5, transparent: true }));
             edgeLines.raycast = () => {};
             cube.add(edgeLines);
             
+            // Linhas extras sutis para simular separação de pacotes
             if (item.type === 'pallet') {
                 const y1 = -item.finalH / 6;
                 const y2 =  item.finalH / 6;
-                const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.5, transparent: true });
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.2, transparent: true });
                 const points1 = [ new THREE.Vector3(-item.l/2, y1, -item.w/2), new THREE.Vector3( item.l/2, y1, -item.w/2), new THREE.Vector3( item.l/2, y1,  item.w/2), new THREE.Vector3(-item.l/2, y1,  item.w/2), new THREE.Vector3(-item.l/2, y1, -item.w/2) ];
                 const geo1 = new THREE.BufferGeometry().setFromPoints(points1);
                 const line1 = new THREE.Line(geo1, lineMat);
@@ -866,9 +995,18 @@
                     cargoGroup.remove(obj);
                     
                     if (obj.geometry) obj.geometry.dispose();
+                    
+                    // Limpeza correta para array de materiais
                     if (obj.material) {
-                        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-                        else obj.material.dispose();
+                        if (Array.isArray(obj.material)) {
+                            obj.material.forEach(m => {
+                                if (m.map) m.map.dispose();
+                                m.dispose();
+                            });
+                        } else {
+                            if (obj.material.map) obj.material.map.dispose();
+                            obj.material.dispose();
+                        }
                     }
                     if (obj.children) {
                         obj.children.forEach(c => {
@@ -926,8 +1064,8 @@
                     const reqCols = ["Nome do produto", "comprimento", "largura", "altura"];
                     const missing = reqCols.filter(col => !(col in json[0]));
                     if (missing.length > 0) {
-                         showDynamicStatus(`Falta colunas: ${missing.join(', ')}`, 'error');
-                         return;
+                          showDynamicStatus(`Falta colunas: ${missing.join(', ')}`, 'error');
+                          return;
                     }
 
                     productDatabase = json;
@@ -1108,11 +1246,19 @@
                 if (!groups[name]) {
                     groups[name] = {
                         name: name,
-                        color: obj.userData.originalColor,
+                        // CORRIGIDO: Usa a cor que está salva no objeto (pode ser Hex String)
+                        color: obj.userData.originalColor2 ? obj.userData.originalColor2 : obj.userData.originalColor,
+                        // Se tiver cor2, salvamos para usar no PDF
+                        color1: obj.userData.originalColor2 ? obj.userData.originalColor : null, // Cor Original (Preto)
+                        color2: obj.userData.originalColor2, // Cor Secundária (Laranja)
                         countPallet: 0,
                         countLoose: 0,
                         db: db
                     };
+                    // Se for Bicolor, ajusta para pegar a cor principal certa se a originalColor estiver como #ffffff
+                    if(obj.userData.originalColor2) {
+                          groups[name].color1 = db.cor; // Força pegar do DB para garantir
+                    }
                 }
 
                 if (obj.userData.type === 'pallet') {
@@ -1271,14 +1417,50 @@
                     yPos = 20;
                 }
 
-                const c = g.color;
-                const r = (c >> 16) & 255;
-                const gr = (c >> 8) & 255;
-                const b = c & 255;
-
                 // Barra Colorida
-                doc.setFillColor(r, gr, b);
-                doc.rect(14, yPos, 3, 22, 'F'); 
+                if (g.color2) {
+                    // SE FOR BICOLOR: DESENHA DUAS BARRAS (METADE CADA)
+                    // Cor 1 (Esquerda)
+                    let r1, gr1, b1;
+                    const c1 = g.color1;
+                    if (typeof c1 === 'string' && c1.startsWith('#')) {
+                        const hex = c1.substring(1);
+                        r1 = parseInt(hex.substring(0, 2), 16);
+                        gr1 = parseInt(hex.substring(2, 4), 16);
+                        b1 = parseInt(hex.substring(4, 6), 16);
+                    }
+                    doc.setFillColor(r1, gr1, b1);
+                    doc.rect(14, yPos, 1.5, 22, 'F'); // Metade da largura (1.5)
+
+                    // Cor 2 (Direita)
+                    let r2, gr2, b2;
+                    const c2 = g.color2;
+                    if (typeof c2 === 'string' && c2.startsWith('#')) {
+                        const hex = c2.substring(1);
+                        r2 = parseInt(hex.substring(0, 2), 16);
+                        gr2 = parseInt(hex.substring(2, 4), 16);
+                        b2 = parseInt(hex.substring(4, 6), 16);
+                    }
+                    doc.setFillColor(r2, gr2, b2);
+                    doc.rect(15.5, yPos, 1.5, 22, 'F'); // Outra metade
+                } else {
+                    // COR ÚNICA (PADRÃO)
+                    let r, gr, b;
+                    const c = g.db.cor || "#000000"; // Pega direto do DB se color estiver confuso
+
+                    if (typeof c === 'string' && c.startsWith('#')) {
+                        const hex = c.substring(1);
+                        r = parseInt(hex.substring(0, 2), 16);
+                        gr = parseInt(hex.substring(2, 4), 16);
+                        b = parseInt(hex.substring(4, 6), 16);
+                    } else {
+                        r = (c >> 16) & 255;
+                        gr = (c >> 8) & 255;
+                        b = c & 255;
+                    }
+                    doc.setFillColor(r, gr, b);
+                    doc.rect(14, yPos, 3, 22, 'F'); 
+                }
 
                 // Título
                 doc.setTextColor(0, 0, 0);
