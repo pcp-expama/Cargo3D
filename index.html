@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Carga - EXPAMA (HD)</title>
+    <title>Simulador de Carga - EXPAMA</title>
 
     <link rel="icon" href="./Carga_flora.jpg" type="image/jpeg">
     
@@ -308,7 +308,10 @@
         let truckModel; 
         const draggableObjects = [];
         const containerDim = { length: 12.04, width: 2.36, height: 2.59 };
-        const SPACING = 0.05; 
+        
+        // --- ATUALIZAÇÃO DE ESPAÇAMENTO AQUI ---
+        const SPACING_X = 0.50; // 50cm entre fileiras
+        const SPACING_Z = 0.13; // 13cm laterais
         const MAGNETIC_RANGE = 0.3; 
 
         // Banco de Dados Default 
@@ -654,6 +657,7 @@
             });
         }
 
+        // --- ATUALIZAÇÃO 1: FUNÇÃO DE ARRASTO MANUAL ---
         function applyMagneticSnap(obj, x, z) {
             const dims = getDimensions(obj);
             let bestX = x; let bestZ = z;
@@ -665,18 +669,26 @@
             for (let other of draggableObjects) {
                 if (other === obj) continue;
                 const otherPos = getLogicPos(other);
-                const rightSideSnap = otherPos.x + otherPos.l + SPACING + dims.l/2;
+                
+                // X (Comprimento) - Usa SPACING_X (0.50m)
+                const rightSideSnap = otherPos.x + otherPos.l + SPACING_X + dims.l/2;
                 if (Math.abs(x - rightSideSnap) < minDistX) { bestX = rightSideSnap; minDistX = Math.abs(x - rightSideSnap); }
-                const leftSideSnap = otherPos.x - SPACING - dims.l/2;
+                const leftSideSnap = otherPos.x - SPACING_X - dims.l/2;
                 if (Math.abs(x - leftSideSnap) < minDistX) { bestX = leftSideSnap; minDistX = Math.abs(x - leftSideSnap); }
+                
+                // Alinhamento Lateral
                 if (Math.abs(z - (otherPos.z + otherPos.w/2)) < otherPos.w/2 + dims.w/2 + 0.5) {
                     const alignLeft = otherPos.x + dims.l/2;
                     if (Math.abs(x - alignLeft) < minDistX) { bestX = alignLeft; minDistX = Math.abs(x - alignLeft); }
                 }
-                const frontSnap = otherPos.z + otherPos.w + SPACING + dims.w/2;
+
+                // Z (Largura) - Usa SPACING_Z (0.13m)
+                const frontSnap = otherPos.z + otherPos.w + SPACING_Z + dims.w/2;
                 if (Math.abs(z - frontSnap) < minDistZ) { bestZ = frontSnap; minDistZ = Math.abs(z - frontSnap); }
-                const backSnap = otherPos.z - SPACING - dims.w/2;
+                const backSnap = otherPos.z - SPACING_Z - dims.w/2;
                 if (Math.abs(z - backSnap) < minDistZ) { bestZ = backSnap; minDistZ = Math.abs(z - backSnap); }
+                
+                // Alinhamento Traseiro
                 if (Math.abs(x - (otherPos.x + otherPos.l/2)) < otherPos.l/2 + dims.l/2 + 0.5) {
                     const alignBack = otherPos.z + dims.w/2;
                     if (Math.abs(z - alignBack) < minDistZ) { bestZ = alignBack; minDistZ = Math.abs(z - alignBack); }
@@ -841,12 +853,16 @@
             updateStats();
         }
 
+        // --- ATUALIZAÇÃO 2: FUNÇÃO AUTOMÁTICA ---
         function findBestSpot(item) {
             let candidates = [{x:0, y:0, z:0}];
             draggableObjects.forEach(obj => {
                 const p = getLogicPos(obj);
-                if (p.x + p.l + SPACING <= containerDim.length) candidates.push({x: p.x + p.l + SPACING, y: p.y, z: p.z});
-                if (p.z + p.w + SPACING <= containerDim.width) candidates.push({x: p.x, y: p.y, z: p.z + p.w + SPACING});
+                // Usa SPACING_X (0.50m) no comprimento
+                if (p.x + p.l + SPACING_X <= containerDim.length) candidates.push({x: p.x + p.l + SPACING_X, y: p.y, z: p.z});
+                // Usa SPACING_Z (0.13m) na largura
+                if (p.z + p.w + SPACING_Z <= containerDim.width) candidates.push({x: p.x, y: p.y, z: p.z + p.w + SPACING_Z});
+                // Altura (Empilhamento) não muda
                 if (p.y + p.h + item.finalH <= containerDim.height) candidates.push({x: p.x, y: p.y + p.h, z: p.z});
             });
 
