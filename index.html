@@ -63,6 +63,18 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
 
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
         canvas { outline: none; }
     </style>
 </head>
@@ -211,6 +223,42 @@
 
             <div class="h-px bg-white/5"></div>
 
+            <div class="p-3 bg-white/5 rounded-xl border border-white/5 mb-4">
+                <h3 class="text-xs font-bold text-blue-400 uppercase mb-2 flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-3 h-3"></i> Adicionar Item Manual
+                </h3>
+                
+                <div class="space-y-2">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2">
+                            <input id="man-name" type="text" placeholder="Nome (Ex: Caixa Avulsa)" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs">
+                        </div>
+                        <div>
+                            <input id="man-qty" type="number" placeholder="Qtd" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <input id="man-c" type="number" step="0.01" placeholder="Comp (m)" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs text-center" title="Comprimento">
+                        <input id="man-l" type="number" step="0.01" placeholder="Larg (m)" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs text-center" title="Largura">
+                        <input id="man-a" type="number" step="0.01" placeholder="Alt (m)" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs text-center" title="Altura">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="man-w" type="number" step="0.001" placeholder="Peso Un. (kg)" class="input-dark w-full rounded-lg px-2 py-1.5 text-xs">
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="text-[10px] text-gray-500">Cor</span>
+                            <input id="man-color" type="color" value="#3b82f6" class="bg-transparent border-none w-6 h-6 cursor-pointer p-0">
+                        </div>
+                    </div>
+
+                    <button id="add-manual-btn" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 py-1.5 rounded-lg text-xs font-semibold transition-all">
+                        + Inserir na Lista
+                    </button>
+                </div>
+            </div>
+            
+            <div class="h-px bg-white/5 mb-4"></div>
             <div class="space-y-3">
                 <div class="flex items-center justify-between text-sm font-semibold text-gray-300">
                     <div class="flex items-center gap-2">
@@ -1045,6 +1093,9 @@
             document.getElementById('pdf-btn').addEventListener('click', generatePDF);
             document.getElementById('import-excel').addEventListener('change', handleExcelUpload);
             
+            // --- NOVO: Listener do Botão Manual ---
+            document.getElementById('add-manual-btn').addEventListener('click', addManualItem);
+            
             // ATUALIZAÇÃO EM TEMPO REAL AO DIGITAR O PESO META
             document.getElementById('info-target-weight').addEventListener('input', updateStats);
 
@@ -1061,6 +1112,76 @@
             });
             
             addProductRow();
+        }
+
+        // --- NOVA FUNÇÃO PARA PROCESSAR O ITEM MANUAL ---
+        function addManualItem() {
+            // 1. Captura os valores dos inputs manuais
+            const name = document.getElementById('man-name').value;
+            const qty = parseInt(document.getElementById('man-qty').value) || 1;
+            const c = parseFloat(document.getElementById('man-c').value);
+            const l = parseFloat(document.getElementById('man-l').value);
+            const a = parseFloat(document.getElementById('man-a').value);
+            const w = parseFloat(document.getElementById('man-w').value) || 0;
+            const color = document.getElementById('man-color').value;
+
+            // 2. Validação básica
+            if (!name || !c || !l || !a) {
+                showDynamicStatus('Preencha as medidas!', 'error');
+                return;
+            }
+
+            // 3. Cria o objeto no formato do seu "productDatabase"
+            // Dica: Tratamos como "pacote" avulso, então peso palete = peso pacote
+            const newItem = {
+                "Nome do produto": name,
+                "cor": color,
+                "comprimento": c,
+                "largura": l,
+                "altura": a,
+                "peso do palete": w, // Se for 1 unidade, peso palete = peso item
+                "peso do pacote": w,
+                "quantidade de peças por pacote": 1,
+                "m3 do pacote": c * l * a,
+                "peso liquido do palete": w,
+                "peso liquido do pacote": w,
+                "pacotes por palete": 1,
+                "peça no mini fardo": 1,
+                "etiqueta peça": "MANUAL",
+                "amarradinho": "---"
+            };
+
+            // 4. Injeta no banco de dados em memória
+            productDatabase.push(newItem);
+
+            // 5. Atualiza todos os dropdowns existentes para incluir o novo item
+            updateAllDropdowns();
+
+            // 6. Adiciona visualmente a linha na lista
+            addProductRow(); 
+            
+            // 7. Seleciona automaticamente o item recém criado na última linha
+            const allRows = document.querySelectorAll('#products-list > div:not(#product-template)');
+            const lastRow = allRows[allRows.length - 1];
+            const select = lastRow.querySelector('select[data-field="name"]');
+            
+            select.value = name; // Seleciona o nome
+            
+            // Preenche a quantidade digitada
+            lastRow.querySelector('[data-field="package_qty"]').value = qty;
+            
+            // Dispara o evento para preencher os inputs de leitura (C, L, A) visualmente
+            fillProductData(select); 
+
+            // 8. Feedback visual e Limpeza
+            showDynamicStatus('Item Manual Adicionado', 'ok');
+            
+            // Opcional: Limpar campos manuais após adicionar
+            document.getElementById('man-name').value = '';
+            document.getElementById('man-c').value = '';
+            document.getElementById('man-l').value = '';
+            document.getElementById('man-a').value = '';
+            document.getElementById('man-w').value = '';
         }
 
         // --- MANIPULAÇÃO DO EXCEL ---
