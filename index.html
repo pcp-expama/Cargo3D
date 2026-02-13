@@ -358,8 +358,9 @@
         const containerDim = { length: 12.04, width: 2.36, height: 2.59 };
         
         // --- ATUALIZAÇÃO DE ESPAÇAMENTO AQUI ---
-        const SPACING_X = 0.50; // 50cm entre fileiras
-        const SPACING_Z = 0.13; // 13cm laterais
+        // ALTERADO PARA 0 (COLADO)
+        const SPACING_X = 0; // 0cm entre fileiras
+        const SPACING_Z = 0; // 0cm laterais
         const MAGNETIC_RANGE = 0.3; 
 
         // Banco de Dados Default 
@@ -897,8 +898,39 @@
                 if (pos) createBox(item, pos);
             }
 
+            centerLoad();
+
             initDragControls();
             updateStats();
+        }
+
+        function centerLoad() {
+            if (draggableObjects.length === 0) return;
+
+            // 1. Descobre até onde a carga foi na largura (Eixo Z)
+            let maxUsedZ = 0;
+            draggableObjects.forEach(obj => {
+                // Pega a posição Z lógica + a largura do objeto
+                const zEnd = obj.userData.z + obj.userData.w;
+                if (zEnd > maxUsedZ) maxUsedZ = zEnd;
+            });
+
+            // 2. Calcula o espaço vazio total
+            const containerW = containerDim.width;
+            const emptySpace = containerW - maxUsedZ;
+
+            // 3. Se sobrou espaço, divide por 2 e empurra tudo para o meio
+            if (emptySpace > 0.01) {
+                const offset = emptySpace / 2;
+                
+                draggableObjects.forEach(obj => {
+                    // Move visualmente (Three.js usa centro do objeto)
+                    obj.position.z += offset;
+                    
+                    // Move logicamente (Para o sistema de arraste saber onde está)
+                    obj.userData.z += offset;
+                });
+            }
         }
 
         // --- ATUALIZAÇÃO 2: FUNÇÃO AUTOMÁTICA ---
