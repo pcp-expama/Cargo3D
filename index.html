@@ -160,7 +160,8 @@
                 <div class="space-y-3">
                     <div>
                         <label class="text-[10px] text-gray-500 uppercase font-bold pl-1">Cliente</label>
-                        <input id="info-client" type="text" placeholder="Nome do Cliente" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        <input id="info-client" list="clients-datalist" type="text" placeholder="Nome do Cliente" class="input-dark w-full rounded-lg px-3 py-2 text-sm">
+                        <datalist id="clients-datalist"></datalist>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2">
@@ -357,23 +358,44 @@
         const draggableObjects = [];
         const containerDim = { length: 12.04, width: 2.36, height: 2.59 };
         
-        // --- ATUALIZAÇÃO DE ESPAÇAMENTO AQUI ---
-        // ALTERADO PARA 0 (COLADO)
         const SPACING_X = 0.15; // 0cm entre fileiras
         const SPACING_Z = 0; // 0cm laterais
         const MAGNETIC_RANGE = 0.3; 
 
-        // Banco de Dados Default 
+        // Banco de Dados Default (CARACTERÍSTICAS FÍSICAS) - Nomes atualizados
         const defaultDatabase = [
             { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "cor": "#e5e7eb", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
-            {"Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "777123191549", "amarradinho": "10777123191546" },
-            { "Nome do produto": "PAINEL RIPADO MADEIRADO - 5 ¹/4 X 8'", "cor": "#C36B05", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
-        
+            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "777123191549", "amarradinho": "10777123191546" },
+            { "Nome do produto": "PAINEL RIPADO IMPRESSO - 5 ¹/4 X 8'", "cor": "#C36B05", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
             { "Nome do produto": "PAINEL RIPADO BICOLOR - 5 ¹/4 X 8'", "cor": "#1f2937", "cor2": "#f97316", "comprimento": 2.4384, "largura": 1.115, "altura": 2.51, "peso do palete": 2997.501, "peso do pacote": 999.167018, "quantidade de peças por pacote": 420, "m3 do pacote": 1.63881, "peso liquido do palete": 2750.53549, "peso liquido do pacote": 916.84516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267BIC", "amarradinho": "10860012267BIC" },
-            { "Nome do produto": "MOLDURA L S4S 1 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.051, "altura": 2.47, "peso do palete": 3996.98796, "peso do pacote": 1332.32932, "quantidade de peças por pacote": 1092, "m3 do pacote": 1.72465, "peso liquido do palete": 3996.98796, "peso liquido do pacote": 1332.32932, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
-            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.038, "altura": 2.47, "peso do palete": 3948.56503, "peso do pacote": 1316.18834, "quantidade de peças por pacote": 294, "m3 do pacote": 1.70254, "peso liquido do palete": 3948.56503, "peso liquido do pacote": 1316.18834, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
-            { "Nome do produto": "MOLDURA L S4S 3 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.127, "altura": 2.47, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
-            { "Nome do produto": "MOLDURA L S4S 5 ¹/2 X 12'", "cor": "#423F3B", "comprimento": 3.6570, "largura": 1.038, "altura": 1.86, "peso do palete": 4214.89111, "peso do pacote": 1404.96370, "quantidade de peças por pacote": 210, "m3 do pacote": 1.82415, "peso liquido do palete": 4214.89111, "peso liquido do pacote": 1404.96370, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267576", "amarradinho": "20860012267570" }
+            { "Nome do produto": "MOLDURA L S4S PRETO 1 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.051, "altura": 2.47, "peso do palete": 3996.98796, "peso do pacote": 1332.32932, "quantidade de peças por pacote": 1092, "m3 do pacote": 1.72465, "peso liquido do palete": 3996.98796, "peso liquido do pacote": 1332.32932, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.038, "altura": 2.47, "peso do palete": 3948.56503, "peso do pacote": 1316.18834, "quantidade de peças por pacote": 294, "m3 do pacote": 1.70254, "peso liquido do palete": 3948.56503, "peso liquido do pacote": 1316.18834, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 8'", "cor": "#423F3B", "comprimento": 2.4384, "largura": 1.127, "altura": 2.47, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 12'", "cor": "#423F3B", "comprimento": 3.6570, "largura": 1.038, "altura": 1.86, "peso do palete": 4214.89111, "peso do pacote": 1404.96370, "quantidade de peças por pacote": 210, "m3 do pacote": 1.82415, "peso liquido do palete": 4214.89111, "peso liquido do pacote": 1404.96370, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267576", "amarradinho": "20860012267570" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 12'", "cor": "#423F3B", "comprimento": 3.6570, "largura": 1.127, "altura": 1.86, "peso do palete": 4287.52549, "peso do pacote": 1429.17516, "quantidade de peças por pacote": 504, "m3 do pacote": 1.85732, "peso liquido do palete": 4287.52549, "peso liquido do pacote": 1429.17516, "pacotes por palete": 3, "peça no mini fardo": 6, "etiqueta peça": "860012267552", "amarradinho": "20860012267556" }
+        ];
+
+        // --- NOVA BASE DE DADOS (ETIQUETAS POR CLIENTE) ---
+        const clientLabelsDB = [
+            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
+            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "Cliente": "NOVO", "etiqueta peça": "860012267507", "amarradinho": "10860012267504" },
+            { "Nome do produto": "PAINEL RIPADO BRANCO - 5 ¹/4 X 8'", "Cliente": "METRIE", "etiqueta peça": "777123191556", "amarradinho": "10777123191553" },
+            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267514", "amarradinho": "10860012267511" },
+            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "Cliente": "NOVO", "etiqueta peça": "860012267514", "amarradinho": "10860012267511" },
+            { "Nome do produto": "PAINEL RIPADO PRETO - 5 ¹/4 X 8'", "Cliente": "METRIE", "etiqueta peça": "777123191549", "amarradinho": "10777123191546" },
+            { "Nome do produto": "PAINEL RIPADO IMPRESSO - 5 ¹/4 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
+            { "Nome do produto": "PAINEL RIPADO IMPRESSO - 5 ¹/4 X 8'", "Cliente": "NOVO", "etiqueta peça": "860012267521", "amarradinho": "10860012267528" },
+            { "Nome do produto": "PAINEL RIPADO IMPRESSO - 5 ¹/4 X 8'", "Cliente": "METRIE", "etiqueta peça": "777123191532", "amarradinho": "10777123191539" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 1 ¹/2 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 12'", "Cliente": "ECMD", "etiqueta peça": "860012267552", "amarradinho": "20860012267556" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 8'", "Cliente": "ECMD", "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 12'", "Cliente": "ECMD", "etiqueta peça": "860012267576", "amarradinho": "20860012267570" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 1 ¹/2 X 8'", "Cliente": "METRIE", "etiqueta peça": "860012267538", "amarradinho": "20860012267532" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 8'", "Cliente": "METRIE", "etiqueta peça": "860012267545", "amarradinho": "20860012267549" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 3 ¹/2 X 12'", "Cliente": "METRIE", "etiqueta peça": "860012267552", "amarradinho": "20860012267556" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 8'", "Cliente": "METRIE", "etiqueta peça": "860012267569", "amarradinho": "20860012267563" },
+            { "Nome do produto": "MOLDURA L S4S PRETO 5 ¹/2 X 12'", "Cliente": "METRIE", "etiqueta peça": "860012267576", "amarradinho": "20860012267570" }
         ];
 
         let productDatabase = [...defaultDatabase];
@@ -448,10 +470,18 @@
         function init() {
             setupScene();
             setupUI();
+            populateClientDatalist(); // Popula os clientes no input
             loadTruckModel();
             camera.position.set(15, 12, 25); 
             animate();
             window.addEventListener('resize', onWindowResize);
+        }
+
+        function populateClientDatalist() {
+            const dataList = document.getElementById('clients-datalist');
+            // Extrai clientes únicos da base nova
+            const uniqueClients = [...new Set(clientLabelsDB.map(item => item['Cliente']))];
+            dataList.innerHTML = uniqueClients.map(client => `<option value="${client}"></option>`).join('');
         }
 
         function setupScene() {
@@ -599,7 +629,6 @@
                 startPosition.copy(event.object.position);
                 
                 const obj = event.object;
-                // Handle both single material and array of materials
                 if (Array.isArray(obj.material)) {
                     obj.material.forEach(m => m.opacity = 0.7);
                 } else {
@@ -624,15 +653,12 @@
                 const logicPos = getLogicPos(obj);
                 const status = validatePosition(obj, logicPos);
                 
-                // Helper to set emissive and color
                 const setVisuals = (colorHex, emissiveHex) => {
                     if (Array.isArray(obj.material)) {
                         obj.material.forEach(m => {
                             m.emissive.setHex(emissiveHex);
-                            // Only change base color for solid materials to preserve texture visual, or tint everything
-                            // To be safe and give feedback, we tint everything
                             if (m.map) {
-                                m.color.setHex(0xffffff); // Keep texture bright but use emissive for feedback
+                                m.color.setHex(0xffffff); 
                             } else {
                                 m.color.setHex(colorHex);
                             }
@@ -659,23 +685,17 @@
                 orbitControls.enabled = true;
                 const obj = event.object;
                 
-                // Helper to restore
                 const restoreVisuals = () => {
                     if (Array.isArray(obj.material)) {
                         obj.material.forEach(m => {
                             m.opacity = 0.95;
                             m.emissive.setHex(0x000000);
                             
-                            // Restore original colors
-                            // Top/Bottom (indices 2,3) are solid primary
-                            // Sides are texture
                             if (!m.map) {
-                                // Solid material
                                 const orig = obj.userData.originalColor;
                                 if(typeof orig === 'string') m.color.setStyle(orig);
                                 else m.color.setHex(orig);
                             } else {
-                                // Texture material - reset to white base
                                 m.color.setHex(0xffffff);
                             }
                         });
@@ -706,7 +726,6 @@
             });
         }
 
-        // --- ATUALIZAÇÃO 1: FUNÇÃO DE ARRASTO MANUAL ---
         function applyMagneticSnap(obj, x, z) {
             const dims = getDimensions(obj);
             let bestX = x; let bestZ = z;
@@ -719,25 +738,21 @@
                 if (other === obj) continue;
                 const otherPos = getLogicPos(other);
                 
-                // X (Comprimento) - Usa SPACING_X (0.50m)
                 const rightSideSnap = otherPos.x + otherPos.l + SPACING_X + dims.l/2;
                 if (Math.abs(x - rightSideSnap) < minDistX) { bestX = rightSideSnap; minDistX = Math.abs(x - rightSideSnap); }
                 const leftSideSnap = otherPos.x - SPACING_X - dims.l/2;
                 if (Math.abs(x - leftSideSnap) < minDistX) { bestX = leftSideSnap; minDistX = Math.abs(x - leftSideSnap); }
                 
-                // Alinhamento Lateral
                 if (Math.abs(z - (otherPos.z + otherPos.w/2)) < otherPos.w/2 + dims.w/2 + 0.5) {
                     const alignLeft = otherPos.x + dims.l/2;
                     if (Math.abs(x - alignLeft) < minDistX) { bestX = alignLeft; minDistX = Math.abs(x - alignLeft); }
                 }
 
-                // Z (Largura) - Usa SPACING_Z (0.13m)
                 const frontSnap = otherPos.z + otherPos.w + SPACING_Z + dims.w/2;
                 if (Math.abs(z - frontSnap) < minDistZ) { bestZ = frontSnap; minDistZ = Math.abs(z - frontSnap); }
                 const backSnap = otherPos.z - SPACING_Z - dims.w/2;
                 if (Math.abs(z - backSnap) < minDistZ) { bestZ = backSnap; minDistZ = Math.abs(z - backSnap); }
                 
-                // Alinhamento Traseiro
                 if (Math.abs(x - (otherPos.x + otherPos.l/2)) < otherPos.l/2 + dims.l/2 + 0.5) {
                     const alignBack = otherPos.z + dims.w/2;
                     if (Math.abs(z - alignBack) < minDistZ) { bestZ = alignBack; minDistZ = Math.abs(z - alignBack); }
@@ -855,7 +870,6 @@
                 
                 const pQty = parseInt(row.querySelector('[data-field="pallet_qty"]').value) || 0;
                 
-                // MUDANÇA: COR FIXA DO PRODUTO (OU GERADA SE NAO EXISTIR)
                 const color = dbData.cor || stringToColor(name);
                 const color2 = dbData.cor2 || null;
 
@@ -881,7 +895,6 @@
                 };
                 
                 const pkgQty = parseInt(row.querySelector('[data-field="package_qty"]').value) || 0;
-                // MUDANÇA: COR FIXA DO PRODUTO (OU GERADA SE NAO EXISTIR)
                 const color = dbData.cor || stringToColor(name);
                 const color2 = dbData.cor2 || null;
                 const looseH = dims.h / dims.pkgPerPallet;
@@ -907,42 +920,31 @@
         function centerLoad() {
             if (draggableObjects.length === 0) return;
 
-            // 1. Descobre até onde a carga foi na largura (Eixo Z)
             let maxUsedZ = 0;
             draggableObjects.forEach(obj => {
-                // Pega a posição Z lógica + a largura do objeto
                 const zEnd = obj.userData.z + obj.userData.w;
                 if (zEnd > maxUsedZ) maxUsedZ = zEnd;
             });
 
-            // 2. Calcula o espaço vazio total
             const containerW = containerDim.width;
             const emptySpace = containerW - maxUsedZ;
 
-            // 3. Se sobrou espaço, divide por 2 e empurra tudo para o meio
             if (emptySpace > 0.01) {
                 const offset = emptySpace / 2;
                 
                 draggableObjects.forEach(obj => {
-                    // Move visualmente (Three.js usa centro do objeto)
                     obj.position.z += offset;
-                    
-                    // Move logicamente (Para o sistema de arraste saber onde está)
                     obj.userData.z += offset;
                 });
             }
         }
 
-        // --- ATUALIZAÇÃO 2: FUNÇÃO AUTOMÁTICA ---
         function findBestSpot(item) {
             let candidates = [{x:0, y:0, z:0}];
             draggableObjects.forEach(obj => {
                 const p = getLogicPos(obj);
-                // Usa SPACING_X (0.50m) no comprimento
                 if (p.x + p.l + SPACING_X <= containerDim.length) candidates.push({x: p.x + p.l + SPACING_X, y: p.y, z: p.z});
-                // Usa SPACING_Z (0.13m) na largura
                 if (p.z + p.w + SPACING_Z <= containerDim.width) candidates.push({x: p.x, y: p.y, z: p.z + p.w + SPACING_Z});
-                // Altura (Empilhamento) não muda
                 if (p.y + p.h + item.finalH <= containerDim.height) candidates.push({x: p.x, y: p.y + p.h, z: p.z});
             });
 
@@ -962,30 +964,25 @@
             return null;
         }
 
-        // --- ATUALIZAÇÃO: Lógica HD Bicolor com Anisotropia ---
         function createBox(item, pos) {
             const geometry = new THREE.BoxGeometry(item.l, item.finalH, item.w);
             let material;
 
-            // Material Settings para um look mais realista e menos embaçado
             const matSettings = {
                 transparent: true,
-                opacity: 0.95,       // Aumentei levemente para ficar mais sólido
-                roughness: 0.7,      // Mais fosco (menos reflexo "plástico")
+                opacity: 0.95,       
+                roughness: 0.7,      
                 metalness: 0.05,
-                polygonOffset: true, // Ajuda a evitar conflito visual nas bordas
+                polygonOffset: true, 
                 polygonOffsetFactor: 1, 
                 polygonOffsetUnits: 1
             };
 
             if (item.color2) {
-                // --- LÓGICA BICOLOR (COM TEXTURA HD) ---
                 const canvas = document.createElement('canvas');
-                // AUMENTO DE RESOLUÇÃO: 1024px para nitidez total
                 canvas.width = 1024; canvas.height = 1024; 
                 const ctx = canvas.getContext('2d');
                 
-                // Repetição baseada em pacotes vs palete
                 const numRepeats = (item.type === 'pallet') ? (item.pkgPerPallet || 1) : 1;
                 const segmentHeight = canvas.height / numRepeats;
 
@@ -993,51 +990,42 @@
                     const currentY = i * segmentHeight;
                     const halfSegment = segmentHeight / 2;
 
-                    // Cor 1 (Metade Superior)
                     ctx.fillStyle = item.color;
                     ctx.fillRect(0, currentY, canvas.width, Math.ceil(halfSegment));
                     
-                    // Cor 2 (Metade Inferior)
                     ctx.fillStyle = item.color2;
                     ctx.fillRect(0, currentY + halfSegment - 1, canvas.width, Math.ceil(halfSegment) + 1);
                 }
                 
                 const tex = new THREE.CanvasTexture(canvas);
-                // MELHORIA DE FILTRO
                 tex.minFilter = THREE.LinearFilter;
                 tex.magFilter = THREE.LinearFilter; 
-                // ANISOTROPIA: Evita borrão quando visto de ângulo
                 tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 tex.wrapS = THREE.ClampToEdgeWrapping;
                 tex.wrapT = THREE.ClampToEdgeWrapping;
                 tex.needsUpdate = true;
                 
-                // Material para LATERAIS (Textura)
                 const matTexture = new THREE.MeshStandardMaterial({ 
                     ...matSettings,
                     map: tex,
-                    color: 0xffffff // Base branca para a textura aparecer fiel
+                    color: 0xffffff 
                 });
 
-                // Material para TOPO e FUNDO (Sólido)
-                // Usamos a COR 1 (item.color) para o topo.
                 const matSolid = new THREE.MeshStandardMaterial({ 
                     ...matSettings,
                     color: item.color 
                 });
 
-                // Array de materiais
                 material = [
-                    matTexture, // Dir
-                    matTexture, // Esq
-                    matSolid,   // Topo (Agora fica da cor correta)
-                    matSolid,   // Fundo
-                    matTexture, // Frente
-                    matTexture  // Trás
+                    matTexture, 
+                    matTexture, 
+                    matSolid,   
+                    matSolid,   
+                    matTexture, 
+                    matTexture  
                 ];
 
             } else {
-                // --- LÓGICA COR ÚNICA ---
                 material = new THREE.MeshStandardMaterial({ 
                     ...matSettings,
                     color: item.color 
@@ -1049,18 +1037,15 @@
             cube.castShadow = true;
             cube.receiveShadow = true;
             
-            // Salva a cor real (item.color) para restauração correta após clique
             const saveColor = item.color; 
             
             cube.userData = { ...item, x: pos.x, y: pos.y, z: pos.z, originalColor: saveColor, originalColor2: item.color2 };
             
-            // --- Arestas (Outline mais forte) ---
             const edges = new THREE.EdgesGeometry(geometry);
             const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.5, transparent: true }));
             edgeLines.raycast = () => {};
             cube.add(edgeLines);
             
-            // Linhas extras sutis para simular separação de pacotes
             if (item.type === 'pallet') {
                 const y1 = -item.finalH / 6;
                 const y2 =  item.finalH / 6;
@@ -1092,7 +1077,6 @@
                     
                     if (obj.geometry) obj.geometry.dispose();
                     
-                    // Limpeza correta para array de materiais
                     if (obj.material) {
                         if (Array.isArray(obj.material)) {
                             obj.material.forEach(m => {
@@ -1125,10 +1109,8 @@
             document.getElementById('pdf-btn').addEventListener('click', generatePDF);
             document.getElementById('import-excel').addEventListener('change', handleExcelUpload);
             
-            // --- NOVO: Listener do Botão Manual ---
             document.getElementById('add-manual-btn').addEventListener('click', addManualItem);
             
-            // ATUALIZAÇÃO EM TEMPO REAL AO DIGITAR O PESO META
             document.getElementById('info-target-weight').addEventListener('input', updateStats);
 
             const list = document.getElementById('products-list');
@@ -1146,9 +1128,7 @@
             addProductRow();
         }
 
-        // --- NOVA FUNÇÃO PARA PROCESSAR O ITEM MANUAL ---
         function addManualItem() {
-            // 1. Captura os valores dos inputs manuais
             const name = document.getElementById('man-name').value;
             const qty = parseInt(document.getElementById('man-qty').value) || 1;
             const c = parseFloat(document.getElementById('man-c').value);
@@ -1157,21 +1137,18 @@
             const w = parseFloat(document.getElementById('man-w').value) || 0;
             const color = document.getElementById('man-color').value;
 
-            // 2. Validação básica
             if (!name || !c || !l || !a) {
                 showDynamicStatus('Preencha as medidas!', 'error');
                 return;
             }
 
-            // 3. Cria o objeto no formato do seu "productDatabase"
-            // Dica: Tratamos como "pacote" avulso, então peso palete = peso pacote
             const newItem = {
                 "Nome do produto": name,
                 "cor": color,
                 "comprimento": c,
                 "largura": l,
                 "altura": a,
-                "peso do palete": w, // Se for 1 unidade, peso palete = peso item
+                "peso do palete": w, 
                 "peso do pacote": w,
                 "quantidade de peças por pacote": 1,
                 "m3 do pacote": c * l * a,
@@ -1183,32 +1160,22 @@
                 "amarradinho": "---"
             };
 
-            // 4. Injeta no banco de dados em memória
             productDatabase.push(newItem);
-
-            // 5. Atualiza todos os dropdowns existentes para incluir o novo item
             updateAllDropdowns();
-
-            // 6. Adiciona visualmente a linha na lista
             addProductRow(); 
             
-            // 7. Seleciona automaticamente o item recém criado na última linha
             const allRows = document.querySelectorAll('#products-list > div:not(#product-template)');
             const lastRow = allRows[allRows.length - 1];
             const select = lastRow.querySelector('select[data-field="name"]');
             
-            select.value = name; // Seleciona o nome
+            select.value = name; 
             
-            // Preenche a quantidade digitada
             lastRow.querySelector('[data-field="package_qty"]').value = qty;
             
-            // Dispara o evento para preencher os inputs de leitura (C, L, A) visualmente
             fillProductData(select); 
 
-            // 8. Feedback visual e Limpeza
             showDynamicStatus('Item Manual Adicionado', 'ok');
             
-            // Opcional: Limpar campos manuais após adicionar
             document.getElementById('man-name').value = '';
             document.getElementById('man-c').value = '';
             document.getElementById('man-l').value = '';
@@ -1216,7 +1183,6 @@
             document.getElementById('man-w').value = '';
         }
 
-        // --- MANIPULAÇÃO DO EXCEL ---
         async function handleExcelUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1321,10 +1287,7 @@
             renderer.setSize(document.getElementById('canvas-container').clientWidth, document.getElementById('canvas-container').clientHeight);
         }
 
-        // --- FUNÇÕES DE STATUS E FORMATAÇÃO (ATUALIZADAS) ---
-        
         function formatWeight(n) {
-            // Padrão brasileiro, sempre 3 casas decimais
             return n.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         }
 
@@ -1342,16 +1305,13 @@
                     totalUnits += 1;
                 }
 
-                // Volume (L * A * P)
                 const vol = (o.userData.l * o.userData.h * o.userData.w);
                 totalVol += vol;
             });
 
-            // Pega o Peso de Destino (Meta)
             const targetInput = document.getElementById('info-target-weight');
             const targetW = parseFloat(targetInput.value) || 0;
 
-            // Atualiza os textos
             document.getElementById('stat-count').textContent = totalUnits;
             document.getElementById('stat-weight').textContent = formatWeight(totalW) + ' kg';
             
@@ -1361,7 +1321,6 @@
             const targetEl = document.getElementById('stat-target');
             if(targetEl) targetEl.textContent = formatWeight(targetW) + ' kg';
 
-            // Lógica de Excesso de Peso
             const warnEl = document.getElementById('stat-excess-warn');
             const warnVal = document.getElementById('stat-excess-val');
             const weightText = document.getElementById('stat-weight');
@@ -1383,14 +1342,12 @@
         function formatNum(n, decimals = 0) {
             return n.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         }
-        // ----------------------------------------------------
 
-        // --- GERAÇÃO DE PDF COMPACTO (CORRIGIDO) ---
+        // --- GERAÇÃO DE PDF ---
         function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // --- 1. Coleta de Dados ---
             const client = document.getElementById('info-client').value || "---";
             const dest = document.getElementById('info-dest').value || "---";
             const targetWeightStr = document.getElementById('info-target-weight').value || "0";
@@ -1415,18 +1372,15 @@
                 if (!groups[name]) {
                     groups[name] = {
                         name: name,
-                        // CORRIGIDO: Usa a cor que está salva no objeto (pode ser Hex String)
                         color: obj.userData.originalColor2 ? obj.userData.originalColor2 : obj.userData.originalColor,
-                        // Se tiver cor2, salvamos para usar no PDF
-                        color1: obj.userData.originalColor2 ? obj.userData.originalColor : null, // Cor Original (Preto)
-                        color2: obj.userData.originalColor2, // Cor Secundária (Laranja)
+                        color1: obj.userData.originalColor2 ? obj.userData.originalColor : null, 
+                        color2: obj.userData.originalColor2, 
                         countPallet: 0,
                         countLoose: 0,
                         db: db
                     };
-                    // Se for Bicolor, ajusta para pegar a cor principal certa se a originalColor estiver como #ffffff
                     if(obj.userData.originalColor2) {
-                          groups[name].color1 = db.cor; // Força pegar do DB para garantir
+                          groups[name].color1 = db.cor; 
                     }
                 }
 
@@ -1463,9 +1417,6 @@
             const diffPeso = targetWeight - globalBruto;
             const utilization = targetWeight > 0 ? (globalBruto / targetWeight) * 100 : 0;
 
-            // --- 2. Layout Visual (COMPACTADO) ---
-
-            // >>>> CABEÇALHO (25mm) <<<<
             doc.setFillColor(240, 240, 240);
             doc.rect(0, 0, 210, 25, 'F');
             doc.setTextColor(0, 0, 0);
@@ -1475,7 +1426,6 @@
             doc.setTextColor(0, 0, 0);
             doc.text(`Data: ${date}`, 190, 17, { align: 'right' });
 
-            // >>>> INFO CLIENTE (Y=32) <<<<
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(9); 
             const infoStartY = 32; 
@@ -1488,7 +1438,6 @@
             doc.text(`Nº Container: ${containerNum}`, 110, infoStartY);
             doc.text(`Responsável: ${responsible}`, 110, infoStartY + infoLineHeight);
 
-            // >>>> RESUMO CINZA (Y=48, Altura=30) <<<<
             doc.setFillColor(240, 240, 240);
             const summaryBoxY = 48; 
             const summaryBoxH = 30; 
@@ -1499,7 +1448,6 @@
             const sumTextStartY = summaryBoxY + 6;
             const sumLineH = 5.5;
 
-            // Coluna Esquerda
             doc.text(`Peso De Destino: ${formatNum(targetWeight, 3)} kg`, 20, sumTextStartY + sumLineH);
             doc.text(`Peso Bruto Carregado: ${formatNum(globalBruto, 3)} kg`, 20, sumTextStartY);
 
@@ -1515,16 +1463,13 @@
             doc.setTextColor(0, 0, 0);
             doc.text(`Utilização: ${formatNum(utilization, 2)}%`, 20, sumTextStartY + (sumLineH * 3));
 
-            // Coluna Direita
             doc.text(`Total Peças: ${formatNum(globalPecas)}`, 110, sumTextStartY);
             doc.text(`Total Unit: ${globalUnits}`, 110, sumTextStartY + sumLineH);
             doc.text(`Total M³: ${formatNum(globalM3, 3)}`, 110, sumTextStartY + (sumLineH * 2));
 
-            // --- 3. Captura Imagem (COM FUNDO 100% BRANCO) ---
             const originalSize = { width: renderer.domElement.width, height: renderer.domElement.height };
             const originalAspect = camera.aspect;
             
-            // 1. Salvar os estados originais da cena (Fundo e Neblina)
             const originalBg = scene.background ? scene.background.clone() : new THREE.Color(0xffffff);
             const originalFogColor = scene.fog ? scene.fog.color.clone() : null;
 
@@ -1535,12 +1480,8 @@
             camera.aspect = printWidth / printHeight;
             camera.updateProjectionMatrix();
 
-            // 2. MUDAR TUDO PARA BRANCO PURO
-            // Isso remove a parte preta de cima
             scene.background = new THREE.Color(0xffffff); 
             
-            // IMPORTANTE: Se tiver neblina (fog), ela precisa ficar branca também, 
-            // senão o horizonte continua preto/escuro.
             if (scene.fog) {
                 scene.fog.color.set(0xffffff);
             }
@@ -1548,7 +1489,6 @@
             renderer.render(scene, camera);
             const imgData = renderer.domElement.toDataURL("image/png", 0.90);
 
-            // 3. Restaurar a cena para como estava antes (Escuro)
             renderer.setSize(originalSize.width, originalSize.height);
             camera.aspect = originalAspect;
             camera.updateProjectionMatrix();
@@ -1559,12 +1499,10 @@
             }
             renderer.render(scene, camera);
 
-            // >>>> IMAGEM COLADA NO RESUMO <<<<
             const imageY = summaryBoxY + summaryBoxH + 2; 
             const imageHeight = 65; 
             doc.addImage(imgData, 'PHG', 14, imageY, 180, imageHeight);
 
-            // --- 4. Detalhamento (Todos os campos incluídos) ---
             const detailsTitleY = imageY + imageHeight + 8; 
             doc.setFontSize(11);
             doc.setTextColor(0,0,0);
@@ -1572,7 +1510,7 @@
             doc.text("Detalhamento por Produto", 14, detailsTitleY);
 
             let yPos = detailsTitleY + 8;
-            const blockHeight = 28; // Altura fixa por produto
+            const blockHeight = 28; 
 
             doc.setFontSize(8); 
 
@@ -1580,16 +1518,12 @@
                 const g = groups[key];
                 const calc = g.calculated;
 
-                // Nova página se não couber
                 if (yPos + blockHeight > 285) {
                     doc.addPage();
                     yPos = 20;
                 }
 
-                // Barra Colorida
                 if (g.color2) {
-                    // SE FOR BICOLOR: DESENHA DUAS BARRAS (METADE CADA)
-                    // Cor 1 (Esquerda)
                     let r1, gr1, b1;
                     const c1 = g.color1;
                     if (typeof c1 === 'string' && c1.startsWith('#')) {
@@ -1599,9 +1533,8 @@
                         b1 = parseInt(hex.substring(4, 6), 16);
                     }
                     doc.setFillColor(r1, gr1, b1);
-                    doc.rect(14, yPos, 1.5, 22, 'F'); // Metade da largura (1.5)
+                    doc.rect(14, yPos, 1.5, 22, 'F'); 
 
-                    // Cor 2 (Direita)
                     let r2, gr2, b2;
                     const c2 = g.color2;
                     if (typeof c2 === 'string' && c2.startsWith('#')) {
@@ -1611,11 +1544,10 @@
                         b2 = parseInt(hex.substring(4, 6), 16);
                     }
                     doc.setFillColor(r2, gr2, b2);
-                    doc.rect(15.5, yPos, 1.5, 22, 'F'); // Outra metade
+                    doc.rect(15.5, yPos, 1.5, 22, 'F'); 
                 } else {
-                    // COR ÚNICA (PADRÃO)
                     let r, gr, b;
-                    const c = g.db.cor || "#000000"; // Pega direto do DB se color estiver confuso
+                    const c = g.db.cor || "#000000"; 
 
                     if (typeof c === 'string' && c.startsWith('#')) {
                         const hex = c.substring(1);
@@ -1631,7 +1563,6 @@
                     doc.rect(14, yPos, 3, 22, 'F'); 
                 }
 
-                // Título
                 doc.setTextColor(0, 0, 0);
                 doc.setFont("helvetica", "bold");
                 doc.text(g.name, 19, yPos + 4);
@@ -1639,34 +1570,45 @@
                 doc.setFont("helvetica", "normal");
                 doc.setTextColor(60, 60, 60);
 
-                // Colunas X
                 const col1 = 19;
                 const col2 = 80;
                 const col3 = 145;
 
-                // Linhas Y
                 const row1 = yPos + 9;
                 const row2 = yPos + 13;
                 const row3 = yPos + 17;
                 const row4 = yPos + 21;
 
-                // COLUNA 1
+                // --- NOVA LÓGICA DE BUSCA DE ETIQUETA ---
+                let etiquetaStr = g.db['etiqueta peça'] || "---";
+                let amarradinhoStr = g.db['amarradinho'] || "---";
+
+                // Se houver um cliente digitado, procura na nova base
+                if (client) {
+                    const clientMapping = clientLabelsDB.find(c => 
+                        c['Nome do produto'] === g.name && 
+                        c['Cliente'].toUpperCase() === client.toUpperCase()
+                    );
+                    
+                    if (clientMapping) {
+                        etiquetaStr = clientMapping['etiqueta peça'];
+                        amarradinhoStr = clientMapping['amarradinho'];
+                    }
+                }
+
                 doc.text(`Pallets: ${g.countPallet}`, col1, row1);
                 doc.text(`Avulsos: ${g.countLoose}`, col1, row2);
                 doc.text(`Peso Líq.: ${formatNum(calc.netWeight, 2)} kg`, col1, row3);
-                doc.text(`Etiqueta: ${g.db['etiqueta peça']}`, col1, row4);
+                doc.text(`Etiqueta: ${etiquetaStr}`, col1, row4); 
 
-                // COLUNA 2 (Com Amarradinho)
-                doc.text(`Amarradinho: ${g.db['amarradinho']}`, col2, row1);
+                doc.text(`Amarradinho: ${amarradinhoStr}`, col2, row1); 
                 doc.text(`Total Unit: ${calc.totalPkgs}`, col2, row2);
                 doc.text(`Total Peças: ${formatNum(calc.totalPecas)}`, col2, row3);
                 doc.text(`Total M³: ${formatNum(calc.totalM3, 3)}`, col2, row4);
 
-                // COLUNA 3 (Com LF e BDL)
                 doc.text(`Total LF: ${formatNum(calc.totalLF)}`, col3, row1);
                 doc.text(`Total BDL: ${formatNum(calc.totalBDL)}`, col3, row2);
 
-                // Linha divisória
                 doc.setDrawColor(230, 230, 230);
                 doc.line(14, yPos + 24, 196, yPos + 24);
 
