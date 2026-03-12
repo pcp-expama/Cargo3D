@@ -279,9 +279,9 @@
                         </div>
                         
                         <div class="grid grid-cols-3 gap-2 mb-3">
-                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="C" data-field="length" title="Comprimento" readonly>
-                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="L" data-field="width" title="Largura" readonly>
-                            <input type="number" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="A" data-field="height" title="Altura" readonly>
+                            <input type="number" step="0.01" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="C" data-field="length" title="Comprimento">
+                            <input type="number" step="0.01" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="L" data-field="width" title="Largura">
+                            <input type="number" step="0.01" class="input-dark rounded-md px-2 py-1 text-xs text-center" placeholder="A" data-field="height" title="Altura">
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 bg-black/20 p-2 rounded-lg">
@@ -353,13 +353,16 @@
         // Variáveis Globais
         let scene, camera, renderer, orbitControls, dragControls;
         let containerMesh; 
-        let cargoGroup; // Grupo para a carga
+        let cargoGroup; 
         let truckModel; 
         const draggableObjects = [];
         const containerDim = { length: 12.04, width: 2.36, height: 2.59 };
         
-        const SPACING_X = 0.15; // 0cm entre fileiras
-        const SPACING_Z = 0; // 0cm laterais
+        // --- ATUALIZAÇÃO DE ESPAÇAMENTO ---
+        const SPACING_X = 0.15; // 15cm frontal (entre fileiras)
+        const SPACING_Z = 0.05; // 5cm lateral obrigatório
+        // ------------------------------------
+
         const MAGNETIC_RANGE = 0.3; 
 
         // Banco de Dados Default (CARACTERÍSTICAS FÍSICAS) - Nomes atualizados
@@ -403,10 +406,8 @@
 
         document.getElementById('info-date').valueAsDate = new Date();
 
-        // Limpa o cache antigo para evitar confusão de versões
         localStorage.removeItem('expama_simulador_db');
 
-        // --- Helper: Gera cor baseada no nome se não houver no DB ---
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -470,7 +471,7 @@
         function init() {
             setupScene();
             setupUI();
-            populateClientDatalist(); // Popula os clientes no input
+            populateClientDatalist(); 
             loadTruckModel();
             camera.position.set(15, 12, 25); 
             animate();
@@ -479,7 +480,6 @@
 
         function populateClientDatalist() {
             const dataList = document.getElementById('clients-datalist');
-            // Extrai clientes únicos da base nova
             const uniqueClients = [...new Set(clientLabelsDB.map(item => item['Cliente']))];
             dataList.innerHTML = uniqueClients.map(client => `<option value="${client}"></option>`).join('');
         }
@@ -1579,11 +1579,9 @@
                 const row3 = yPos + 17;
                 const row4 = yPos + 21;
 
-                // --- NOVA LÓGICA DE BUSCA DE ETIQUETA ---
                 let etiquetaStr = g.db['etiqueta peça'] || "---";
                 let amarradinhoStr = g.db['amarradinho'] || "---";
 
-                // Se houver um cliente digitado, procura na nova base
                 if (client) {
                     const clientMapping = clientLabelsDB.find(c => 
                         c['Nome do produto'] === g.name && 
