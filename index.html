@@ -146,7 +146,7 @@
                     <h1 class="text-lg font-bold text-white leading-tight">Formatação de PO</h1>
                     <p class="text-xs text-gray-400">PCP - Planejamento de Carga</p>
                 </div>
-                <img src="./EXPAMA.png" alt="EXPAMA" class="h-4 w-auto ml-auto object-contain">
+                <img src="./EXPAMA.png" alt="EXPAMA" class="h-4 w-auto ml-auto object-contain" onerror="this.style.display='none'">
             </div>
         </div>
 
@@ -310,10 +310,14 @@
                 SIMULAR CARREGAMENTO
             </button>
 
-            <button id="pdf-btn" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-emerald-900/20">
-                <i data-lucide="file-down" class="w-4 h-4"></i>
-                Gerar Relatório PDF
-            </button>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="pdf-btn" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-orange-900/20">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> PDF
+                </button>
+                <button id="excel-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-emerald-900/20">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
+                </button>
+            </div>
 
             <div class="grid grid-cols-2 gap-2">
                 <button id="save-btn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-white/5">
@@ -326,7 +330,7 @@
             </div>
             
             <label class="w-full bg-green-800 hover:bg-green-700 text-green-100 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer border border-green-500/20 mt-2">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Importar Base (Excel)
+                <i data-lucide="database" class="w-4 h-4"></i> Importar Base (Excel)
                 <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls">
             </label>
         </div>
@@ -425,7 +429,6 @@
             return color;
         }
 
-        
         function applyGravityToAll() {
             draggableObjects.sort((a, b) => a.position.y - b.position.y);
             let movedAny = false;
@@ -1111,6 +1114,7 @@
             document.getElementById('save-btn').addEventListener('click', saveJSON);
             document.getElementById('load-file').addEventListener('change', loadJSON);
             document.getElementById('pdf-btn').addEventListener('click', generatePDF);
+            document.getElementById('excel-btn').addEventListener('click', generateExcel);
             document.getElementById('import-excel').addEventListener('change', handleExcelUpload);
             
             document.getElementById('add-manual-btn').addEventListener('click', addManualItem);
@@ -1345,6 +1349,122 @@
         
         function formatNum(n, decimals = 0) {
             return n.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        // --- GERAÇÃO DE EXCEL ---
+        function generateExcel() {
+            if (typeof XLSX === 'undefined') {
+                showDynamicStatus('Erro: SheetJS não carregado', 'error');
+                return;
+            }
+
+            const date = document.getElementById('info-date').value || new Date().toLocaleDateString('pt-BR');
+            const targetWeightStr = document.getElementById('info-target-weight').value || "0";
+            const targetWeight = parseFloat(targetWeightStr);
+            
+            const client = document.getElementById('info-client').value || "---";
+            const dest = document.getElementById('info-dest').value || "---";
+            const po = document.getElementById('info-po').value || "---";
+            const containerNum = document.getElementById('info-container-id').value || "---";
+
+            const groups = {};
+            let globalBruto = 0;
+
+            // Agrupa os itens da mesma forma que o PDF e calcula o Peso Bruto Total
+            draggableObjects.forEach(obj => {
+                const name = obj.userData.name;
+                const db = productDatabase.find(p => p['Nome do produto'] === name);
+                if (!db) return;
+
+                if (!groups[name]) {
+                    groups[name] = {
+                        name: name,
+                        countPallet: 0,
+                        countLoose: 0,
+                        db: db
+                    };
+                }
+
+                if (obj.userData.type === 'pallet') {
+                    groups[name].countPallet++;
+                    globalBruto += db['peso do palete'];
+                } else {
+                    groups[name].countLoose++;
+                    globalBruto += db['peso do pacote'];
+                }
+            });
+
+            const excelData = [];
+
+            // Formata as linhas para o Excel
+            for (const key in groups) {
+                const g = groups[key];
+                const pkgsInPallets = g.countPallet * g.db['pacotes por palete'];
+                const totalPkgs = pkgsInPallets + g.countLoose;
+                const totalPecas = totalPkgs * g.db['quantidade de peças por pacote'];
+                const totalM3 = totalPkgs * g.db['m3 do pacote'];
+                const netWeight = (g.countPallet * g.db['peso liquido do palete']) + (g.countLoose * g.db['peso liquido do pacote']);
+                const totalLF = totalPecas * (g.db['comprimento'] / 0.3048);
+                const totalBDL = totalPecas / g.db['peça no mini fardo'];
+
+                let etiquetaStr = g.db['etiqueta peça'] || "---";
+                let amarradinhoStr = g.db['amarradinho'] || "---";
+
+                // Atualiza etiqueta baseado no cliente selecionado
+                if (client && client !== "---") {
+                    const clientMapping = clientLabelsDB.find(c => 
+                        c['Nome do produto'] === g.name && 
+                        c['Cliente'].toUpperCase() === client.toUpperCase()
+                    );
+                    
+                    if (clientMapping) {
+                        etiquetaStr = clientMapping['etiqueta peça'];
+                        amarradinhoStr = clientMapping['amarradinho'];
+                    }
+                }
+
+                // Cria a linha (objeto) que será convertida para colunas no Excel
+                excelData.push({
+                    "Data": date,
+                    "PO": po,
+                    "Cliente": client,
+                    "Destino": dest,
+                    "Container": containerNum,
+                    "Peso Destino (kg)": parseFloat(targetWeight.toFixed(3)),
+                    "Peso Carregado (kg)": parseFloat(globalBruto.toFixed(3)),
+                    "Produto": g.name,
+                    "Qtd Pallets": g.countPallet,
+                    "Qtd Pacotes Avulsos": g.countLoose,
+                    "Total Unidades (Pacotes)": totalPkgs,
+                    "Total Peças": totalPecas,
+                    "Peso Líquido (kg)": parseFloat(netWeight.toFixed(2)),
+                    "Volume Total (m³)": parseFloat(totalM3.toFixed(3)),
+                    "Total LF": parseFloat(totalLF.toFixed(2)),
+                    "Total BDL": parseFloat(totalBDL.toFixed(2)),
+                    "Etiqueta Peça": etiquetaStr,
+                    "Amarradinho": amarradinhoStr
+                });
+            }
+
+            if (excelData.length === 0) {
+                showDynamicStatus('Nenhum item na carga!', 'warn');
+                return;
+            }
+
+            // Converte e exporta
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Itens_Carga");
+                
+                const fileName = `Planilha_Carga_${po !== "---" ? po : "Export"}.xlsx`;
+                XLSX.writeFile(workbook, fileName);
+                
+                showDynamicStatus('Excel Gerado com Sucesso!', 'ok');
+            } catch (err) {
+                console.error("Erro ao gerar Excel:", err);
+                showDynamicStatus('Erro ao Exportar', 'error');
+            }
         }
 
         // --- GERAÇÃO DE PDF ---
